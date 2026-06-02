@@ -3,32 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Семья</title>
+<title>Наша Семья</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #2d3748; min-height: 100vh; }
 
+  /* ── setup banner ── */
+  #setup-banner {
+    display: none;
+    background: #fff3cd;
+    border-bottom: 2px solid #ffc107;
+    padding: 12px 20px;
+    font-size: 13px;
+    color: #856404;
+    text-align: center;
+  }
+  #setup-banner a { color: #533f03; font-weight: 700; }
+
+  /* ── sync indicator ── */
+  #sync-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #a0aec0;
+    display: inline-block;
+    margin-left: 8px;
+    vertical-align: middle;
+    transition: background 0.3s;
+  }
+  #sync-dot.ok  { background: #48bb78; }
+  #sync-dot.err { background: #fc8181; }
+
   header {
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
-    padding: 20px 24px;
+    padding: 16px 20px;
     display: flex;
     align-items: center;
     gap: 12px;
   }
-  header h1 { font-size: 22px; font-weight: 700; }
-  header .sub { font-size: 12px; opacity: 0.85; }
+  header h1 { font-size: 20px; font-weight: 700; }
+  header .sub { font-size: 11px; opacity: 0.85; margin-top: 2px; }
 
   nav {
     display: flex;
     overflow-x: auto;
     background: white;
     border-bottom: 2px solid #e2e8f0;
-    padding: 0 12px;
+    padding: 0 8px;
   }
   nav button {
     flex-shrink: 0;
-    padding: 14px 16px;
+    padding: 13px 14px;
     border: none;
     background: none;
     cursor: pointer;
@@ -42,805 +67,629 @@
   nav button.active { color: #667eea; border-bottom-color: #667eea; font-weight: 600; }
   nav button:hover { color: #667eea; }
 
-  .page { display: none; padding: 20px; max-width: 700px; margin: 0 auto; }
+  .page { display: none; padding: 16px; max-width: 680px; margin: 0 auto; }
   .page.active { display: block; }
 
   .card {
     background: white;
     border-radius: 14px;
-    padding: 18px;
-    margin-bottom: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   }
-  .card h3 {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+  .card h3 { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
 
   /* member colors */
-  .member-color-мама    { background: #fed7e2; color: #97266d; }
-  .member-color-папа    { background: #bee3f8; color: #2b6cb0; }
-  .member-color-Арслан  { background: #c6f6d5; color: #276749; }
-  .member-color-Алим    { background: #fefcbf; color: #975a16; }
-  .member-color-Альмира { background: #e9d8fd; color: #553c9a; }
-  .member-color-все     { background: #e2e8f0; color: #4a5568; }
+  .mc-мама    { background: #fed7e2; color: #97266d; }
+  .mc-папа    { background: #bee3f8; color: #2b6cb0; }
+  .mc-Арслан  { background: #c6f6d5; color: #276749; }
+  .mc-Алим    { background: #fefcbf; color: #975a16; }
+  .mc-Альмира { background: #e9d8fd; color: #553c9a; }
+  .mc-все     { background: #e2e8f0; color: #4a5568; }
 
   /* chips */
-  .member-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
   .chip {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    cursor: pointer;
-    border: 2px solid transparent;
-    font-weight: 500;
-    transition: all 0.15s;
+    padding: 5px 12px; border-radius: 20px; font-size: 12px;
+    cursor: pointer; border: 2px solid transparent; font-weight: 500; transition: all 0.15s;
   }
-  .chip-мама    { background: #fed7e2; color: #97266d; }
-  .chip-мама.selected    { background: #d53f8c; border-color: #97266d; color: white; }
-  .chip-папа    { background: #bee3f8; color: #2b6cb0; }
-  .chip-папа.selected    { background: #3182ce; border-color: #2b6cb0; color: white; }
-  .chip-Арслан  { background: #c6f6d5; color: #276749; }
-  .chip-Арслан.selected  { background: #38a169; border-color: #276749; color: white; }
-  .chip-Алим    { background: #fefcbf; color: #975a16; }
-  .chip-Алим.selected    { background: #d69e2e; border-color: #975a16; color: white; }
-  .chip-Альмира { background: #e9d8fd; color: #553c9a; }
-  .chip-Альмира.selected { background: #805ad5; border-color: #553c9a; color: white; }
+  .chip-мама    { background:#fed7e2; color:#97266d; }
+  .chip-мама.sel    { background:#d53f8c; border-color:#97266d; color:white; }
+  .chip-папа    { background:#bee3f8; color:#2b6cb0; }
+  .chip-папа.sel    { background:#3182ce; border-color:#2b6cb0; color:white; }
+  .chip-Арслан  { background:#c6f6d5; color:#276749; }
+  .chip-Арслан.sel  { background:#38a169; border-color:#276749; color:white; }
+  .chip-Алим    { background:#fefcbf; color:#975a16; }
+  .chip-Алим.sel    { background:#d69e2e; border-color:#975a16; color:white; }
+  .chip-Альмира { background:#e9d8fd; color:#553c9a; }
+  .chip-Альмира.sel { background:#805ad5; border-color:#553c9a; color:white; }
 
-  /* task / shop items */
-  .task-list { list-style: none; }
-  .task-item {
-    display: flex;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #f7fafc;
-    gap: 10px;
+  /* task rows */
+  .task-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 0; border-bottom: 1px solid #f7fafc;
   }
-  .task-item:last-child { border-bottom: none; }
-  .task-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #667eea; flex-shrink: 0; }
-  .task-item.done > span { text-decoration: line-through; color: #a0aec0; }
-  .task-item > span { flex: 1; font-size: 14px; }
-  .assignee {
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-  .del-btn {
-    background: none; border: none; cursor: pointer;
-    color: #cbd5e0; font-size: 18px; line-height: 1; padding: 2px 4px; flex-shrink: 0;
-  }
-  .del-btn:hover { color: #fc8181; }
+  .task-row:last-child { border-bottom: none; }
+  .task-row input[type=checkbox] { width: 18px; height: 18px; flex-shrink:0; cursor:pointer; accent-color:#667eea; }
+  .task-row.done > .task-text { text-decoration: line-through; color: #a0aec0; }
+  .task-text { flex: 1; font-size: 14px; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; white-space: nowrap; }
+  .del { background:none; border:none; cursor:pointer; color:#cbd5e0; font-size:18px; line-height:1; padding:2px; flex-shrink:0; }
+  .del:hover { color:#fc8181; }
 
   /* add form */
-  .add-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-    flex-wrap: wrap;
-  }
+  .add-row { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
   .add-row input, .add-row select {
-    flex: 1;
-    min-width: 120px;
-    padding: 9px 12px;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 14px;
-    outline: none;
+    flex:1; min-width:110px; padding:8px 11px;
+    border:1.5px solid #e2e8f0; border-radius:8px; font-size:13px; outline:none;
     transition: border-color 0.2s;
   }
-  .add-row input:focus, .add-row select:focus { border-color: #667eea; }
-  .add-btn {
-    padding: 9px 18px;
-    background: #667eea;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: background 0.2s;
-    white-space: nowrap;
+  .add-row input:focus, .add-row select:focus { border-color:#667eea; }
+  .btn {
+    padding:8px 16px; background:#667eea; color:white;
+    border:none; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600;
+    transition:background 0.2s; white-space:nowrap;
   }
-  .add-btn:hover { background: #5a67d8; }
-  .add-btn.red { background: #e53e3e; }
-  .add-btn.red:hover { background: #c53030; }
+  .btn:hover { background:#5a67d8; }
+  .btn.red { background:#e53e3e; } .btn.red:hover { background:#c53030; }
 
-  /* category management */
+  /* category tags */
   .cat-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #ebf4ff;
-    color: #3182ce;
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 13px;
-    font-weight: 600;
-    margin: 3px;
-    cursor: default;
+    display:inline-flex; align-items:center; gap:5px;
+    background:#ebf4ff; color:#3182ce; border-radius:20px;
+    padding:4px 10px; font-size:12px; font-weight:600; margin:3px;
   }
-  .cat-tag .del-cat {
-    cursor: pointer;
-    color: #90cdf4;
-    font-size: 14px;
-    line-height: 1;
-  }
-  .cat-tag .del-cat:hover { color: #fc8181; }
-
-  /* shopping */
-  .shop-item {
-    display: flex;
-    align-items: center;
-    padding: 9px 0;
-    border-bottom: 1px solid #f7fafc;
-    gap: 10px;
-  }
-  .shop-item:last-child { border-bottom: none; }
-  .shop-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #38a169; flex-shrink: 0; }
-  .shop-item.done > span { text-decoration: line-through; color: #a0aec0; }
-  .shop-item > span { flex: 1; font-size: 14px; }
-  .qty { font-size: 12px; color: #718096; background: #f7fafc; padding: 2px 8px; border-radius: 8px; white-space: nowrap; }
-
-  /* calendar */
-  .calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-    margin-bottom: 16px;
-  }
-  .cal-header { text-align: center; font-size: 11px; font-weight: 700; color: #718096; padding: 4px; }
-  .cal-day {
-    text-align: center;
-    padding: 6px 2px;
-    border-radius: 8px;
-    font-size: 13px;
-    cursor: pointer;
-    position: relative;
-    min-height: 36px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-  .cal-day:hover { background: #ebf4ff; }
-  .cal-day.today { background: #667eea; color: white; font-weight: 700; }
-  .cal-day.has-event::after {
-    content: '';
-    width: 5px; height: 5px;
-    background: #f6ad55;
-    border-radius: 50%;
-    position: absolute;
-    bottom: 4px;
-  }
-  .cal-day.today.has-event::after { background: white; }
-  .cal-day.empty { cursor: default; }
-  .cal-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  .cal-nav button {
-    background: none;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 4px 14px;
-    cursor: pointer;
-    font-size: 16px;
-    color: #4a5568;
-  }
-  .cal-nav button:hover { background: #f7fafc; }
-  .cal-nav span { font-weight: 700; font-size: 15px; }
-
-  /* events */
-  .event-item {
-    display: flex;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid #f7fafc;
-    align-items: flex-start;
-  }
-  .event-item:last-child { border-bottom: none; }
-  .event-date {
-    background: #667eea;
-    color: white;
-    border-radius: 10px;
-    padding: 6px 10px;
-    text-align: center;
-    min-width: 52px;
-    font-size: 12px;
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-  .event-date .day { font-size: 20px; line-height: 1.1; }
-  .event-info { flex: 1; }
-  .event-info .title { font-weight: 600; font-size: 14px; }
-  .event-info .meta { font-size: 12px; color: #718096; margin-top: 2px; }
-  .event-participants { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
-  .chip-sm { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
-
-  /* lessons */
-  .lesson-card {
-    background: linear-gradient(135deg, #f3e8ff, #fce7f3);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-  .lesson-icon { font-size: 32px; flex-shrink: 0; }
-  .lesson-body { flex: 1; }
-  .lesson-name { font-size: 16px; font-weight: 700; color: #553c9a; }
-  .lesson-schedule { font-size: 13px; color: #718096; margin-top: 4px; }
-  .lesson-place { font-size: 12px; color: #9f7aea; margin-top: 2px; font-style: italic; }
-  .lesson-time-badge {
-    background: #805ad5;
-    color: white;
-    border-radius: 10px;
-    padding: 6px 12px;
-    font-size: 14px;
-    font-weight: 700;
-    text-align: center;
-    flex-shrink: 0;
-  }
+  .cat-tag .x { cursor:pointer; color:#90cdf4; } .cat-tag .x:hover { color:#fc8181; }
 
   /* section title */
-  .section-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: #718096;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin: 16px 0 8px;
-  }
+  .sec { font-size:12px; font-weight:700; color:#718096; text-transform:uppercase; letter-spacing:.5px; margin:14px 0 7px; }
 
   /* stats */
-  .stats-row { display: flex; gap: 10px; margin-bottom: 16px; }
-  .stat-card {
-    flex: 1;
-    background: white;
-    border-radius: 12px;
-    padding: 14px;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  }
-  .stat-card .num { font-size: 28px; font-weight: 800; color: #667eea; }
-  .stat-card .label { font-size: 11px; color: #718096; margin-top: 2px; }
+  .stats { display:flex; gap:10px; margin-bottom:14px; }
+  .stat { flex:1; background:white; border-radius:12px; padding:12px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .stat .n { font-size:26px; font-weight:800; color:#667eea; }
+  .stat .l { font-size:11px; color:#718096; margin-top:2px; }
 
-  /* Альмира header */
-  .almira-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: linear-gradient(135deg, #e9d8fd, #fce7f3);
-    border-radius: 14px;
-    padding: 16px 18px;
-    margin-bottom: 16px;
+  /* calendar */
+  .cal-nav { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .cal-nav button { background:none; border:1.5px solid #e2e8f0; border-radius:8px; padding:3px 12px; cursor:pointer; font-size:15px; color:#4a5568; }
+  .cal-nav button:hover { background:#f7fafc; }
+  .cal-nav span { font-weight:700; font-size:14px; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-bottom:14px; }
+  .cal-hd { text-align:center; font-size:10px; font-weight:700; color:#718096; padding:3px; }
+  .cal-d {
+    text-align:center; padding:5px 2px; border-radius:7px; font-size:12px;
+    cursor:pointer; position:relative; min-height:32px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
   }
-  .almira-header .avatar { font-size: 40px; }
-  .almira-header .info h2 { font-size: 18px; font-weight: 800; color: #553c9a; }
-  .almira-header .info p { font-size: 13px; color: #9f7aea; margin-top: 2px; }
+  .cal-d:hover { background:#ebf4ff; }
+  .cal-d.today { background:#667eea; color:white; font-weight:700; }
+  .cal-d.has-ev::after { content:''; width:5px; height:5px; background:#f6ad55; border-radius:50%; position:absolute; bottom:3px; }
+  .cal-d.today.has-ev::after { background:white; }
+  .cal-d.empty { cursor:default; }
 
-  @media (max-width: 480px) {
-    .add-row { flex-direction: column; }
-    .add-row input, .add-row select, .add-btn { min-width: 0; width: 100%; }
-    .stats-row { flex-wrap: wrap; }
-    .stat-card { min-width: 80px; }
+  /* events */
+  .ev-row { display:flex; gap:10px; padding:10px 0; border-bottom:1px solid #f7fafc; align-items:flex-start; }
+  .ev-row:last-child { border-bottom:none; }
+  .ev-date { background:#667eea; color:white; border-radius:9px; padding:5px 8px; text-align:center; min-width:46px; font-size:11px; font-weight:700; flex-shrink:0; }
+  .ev-date .d { font-size:18px; line-height:1.1; }
+  .ev-info { flex:1; }
+  .ev-info .t { font-weight:600; font-size:14px; }
+  .ev-info .m { font-size:12px; color:#718096; margin-top:1px; }
+  .ev-pp { display:flex; gap:3px; flex-wrap:wrap; margin-top:5px; }
+
+  /* shop */
+  .shop-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid #f7fafc; }
+  .shop-row:last-child { border-bottom:none; }
+  .shop-row input[type=checkbox] { width:18px; height:18px; flex-shrink:0; cursor:pointer; accent-color:#38a169; }
+  .shop-row.done > .shop-name { text-decoration:line-through; color:#a0aec0; }
+  .shop-name { flex:1; font-size:14px; }
+  .qty { font-size:12px; color:#718096; background:#f7fafc; padding:2px 7px; border-radius:8px; }
+
+  /* lessons */
+  .almira-hd {
+    display:flex; align-items:center; gap:12px;
+    background:linear-gradient(135deg,#e9d8fd,#fce7f3);
+    border-radius:14px; padding:14px 16px; margin-bottom:14px;
+  }
+  .almira-hd .av { font-size:38px; }
+  .almira-hd h2 { font-size:17px; font-weight:800; color:#553c9a; }
+  .almira-hd p  { font-size:12px; color:#9f7aea; margin-top:2px; }
+  .les-card {
+    background:linear-gradient(135deg,#f3e8ff,#fce7f3);
+    border-radius:12px; padding:14px; margin-bottom:10px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .les-icon { font-size:30px; flex-shrink:0; }
+  .les-body { flex:1; }
+  .les-name { font-size:15px; font-weight:700; color:#553c9a; }
+  .les-meta { font-size:12px; color:#718096; margin-top:3px; }
+  .les-place { font-size:11px; color:#9f7aea; margin-top:2px; font-style:italic; }
+  .les-time { background:#805ad5; color:white; border-radius:9px; padding:5px 11px; font-size:13px; font-weight:700; }
+
+  @media(max-width:480px){
+    .add-row { flex-direction:column; }
+    .add-row input,.add-row select,.btn { min-width:0; width:100%; }
+    .stats { flex-wrap:wrap; }
+    .stat { min-width:70px; }
   }
 </style>
 </head>
 <body>
 
+<!-- ══ FIREBASE SETUP BANNER (shown when not configured) ══ -->
+<div id="setup-banner">
+  ⚠️ Firebase не настроен — данные не синхронизируются. Вставьте конфиг Firebase в код или напишите разработчику.
+</div>
+
 <header>
-  <span>🏠</span>
+  <span style="font-size:26px">🏠</span>
   <div>
-    <h1>Наша Семья</h1>
+    <h1>Наша Семья <span id="sync-dot"></span></h1>
     <div class="sub">Мама · Папа · Арслан · Алим · Альмира</div>
   </div>
 </header>
 
 <nav>
-  <button class="active" onclick="showPage('duties',this)">🗂 Обязанности</button>
-  <button onclick="showPage('shopping',this)">🛒 Продукты</button>
-  <button onclick="showPage('events',this)">🎉 Мероприятия</button>
-  <button onclick="showPage('lessons',this)">🥋 Занятия</button>
+  <button class="active" onclick="go('duties',this)">🗂 Обязанности</button>
+  <button onclick="go('shopping',this)">🛒 Продукты</button>
+  <button onclick="go('events',this)">🎉 Мероприятия</button>
+  <button onclick="go('lessons',this)">🥋 Занятия</button>
 </nav>
 
-<!-- ══════════════ ОБЯЗАННОСТИ ══════════════ -->
+<!-- ══════════ ОБЯЗАННОСТИ ══════════ -->
 <div id="page-duties" class="page active">
-  <div class="stats-row">
-    <div class="stat-card"><div class="num" id="stat-done">0</div><div class="label">Выполнено</div></div>
-    <div class="stat-card"><div class="num" id="stat-total">0</div><div class="label">Всего задач</div></div>
-    <div class="stat-card"><div class="num" id="stat-pct">0%</div><div class="label">Прогресс</div></div>
+  <div class="stats">
+    <div class="stat"><div class="n" id="st-done">0</div><div class="l">Выполнено</div></div>
+    <div class="stat"><div class="n" id="st-total">0</div><div class="l">Всего</div></div>
+    <div class="stat"><div class="n" id="st-pct">0%</div><div class="l">Прогресс</div></div>
   </div>
-
-  <div id="duties-sections"></div>
-
-  <!-- Добавить задачу -->
+  <div id="duty-sections"></div>
   <div class="card">
     <h3>➕ Добавить задачу</h3>
-    <div class="add-row">
-      <input id="duty-text" placeholder="Название задачи..." />
-    </div>
+    <div class="add-row"><input id="d-text" placeholder="Название задачи..." /></div>
     <div class="add-row" style="margin-top:8px">
-      <select id="duty-cat-select">
-        <option value="">— выберите категорию —</option>
+      <select id="d-cat"><option value="">— категория —</option></select>
+      <select id="d-who">
+        <option>Мама</option><option>Папа</option><option>Арслан</option>
+        <option>Алим</option><option>Альмира</option><option>все</option>
       </select>
-      <select id="duty-member">
-        <option>Мама</option>
-        <option>Папа</option>
-        <option>Арслан</option>
-        <option>Алим</option>
-        <option>Альмира</option>
-        <option>все</option>
-      </select>
-      <button class="add-btn" onclick="addDuty()">Добавить</button>
+      <button class="btn" onclick="addDuty()">Добавить</button>
     </div>
   </div>
-
-  <!-- Управление категориями -->
   <div class="card">
     <h3>🏷 Категории</h3>
     <div id="cat-tags"></div>
-    <div class="add-row" style="margin-top:12px">
-      <input id="new-cat-emoji" placeholder="😊" style="max-width:60px;text-align:center" />
-      <input id="new-cat-name" placeholder="Название категории..." />
-      <button class="add-btn" onclick="addCategory()">Создать</button>
+    <div class="add-row" style="margin-top:10px">
+      <input id="c-emoji" placeholder="😊" style="max-width:54px;text-align:center" />
+      <input id="c-name" placeholder="Название категории..." />
+      <button class="btn" onclick="addCat()">Создать</button>
     </div>
   </div>
 </div>
 
-<!-- ══════════════ ПРОДУКТЫ ══════════════ -->
+<!-- ══════════ ПРОДУКТЫ ══════════ -->
 <div id="page-shopping" class="page">
   <div class="card">
     <h3>🛒 Список покупок</h3>
-    <ul class="task-list" id="shop-list"></ul>
-    <div class="add-row" style="margin-top:14px">
-      <input id="shop-item" placeholder="Название продукта..." />
-      <input id="shop-qty" placeholder="Кол-во" style="max-width:90px" />
-      <button class="add-btn" onclick="addShopItem()">Добавить</button>
+    <div id="shop-list"></div>
+    <div class="add-row" style="margin-top:12px">
+      <input id="s-name" placeholder="Продукт..." />
+      <input id="s-qty"  placeholder="Кол-во" style="max-width:85px" />
+      <button class="btn" onclick="addShop()">Добавить</button>
     </div>
   </div>
-  <div class="card" style="text-align:center;padding:14px 18px">
-    <button class="add-btn red" onclick="clearBought()">🗑 Очистить купленное</button>
+  <div class="card" style="text-align:center;padding:12px">
+    <button class="btn red" onclick="clearBought()">🗑 Убрать купленное</button>
   </div>
 </div>
 
-<!-- ══════════════ МЕРОПРИЯТИЯ ══════════════ -->
+<!-- ══════════ МЕРОПРИЯТИЯ ══════════ -->
 <div id="page-events" class="page">
   <div class="card">
     <div class="cal-nav">
-      <button onclick="changeMonth(-1)">‹</button>
+      <button onclick="chMon(-1)">‹</button>
       <span id="cal-title"></span>
-      <button onclick="changeMonth(1)">›</button>
+      <button onclick="chMon(1)">›</button>
     </div>
-    <div class="calendar-grid" id="cal-grid"></div>
+    <div class="cal-grid" id="cal-grid"></div>
   </div>
-
   <div class="card">
     <h3>📅 Все мероприятия</h3>
-    <div id="events-list"></div>
+    <div id="ev-list"></div>
   </div>
-
   <div class="card">
     <h3>➕ Добавить мероприятие</h3>
     <div class="add-row">
-      <input id="ev-title" placeholder="Название..." />
-      <input id="ev-date" type="date" />
-      <input id="ev-time" type="time" />
+      <input id="e-title" placeholder="Название..." />
+      <input id="e-date" type="date" />
+      <input id="e-time" type="time" />
     </div>
-    <div class="member-chips" id="ev-members" style="margin-top:10px">
-      <div class="chip chip-мама"    data-name="Мама"    onclick="toggleEvMember(this)">Мама</div>
-      <div class="chip chip-папа"    data-name="Папа"    onclick="toggleEvMember(this)">Папа</div>
-      <div class="chip chip-Арслан"  data-name="Арслан"  onclick="toggleEvMember(this)">Арслан</div>
-      <div class="chip chip-Алим"    data-name="Алим"    onclick="toggleEvMember(this)">Алим</div>
-      <div class="chip chip-Альмира" data-name="Альмира" onclick="toggleEvMember(this)">Альмира</div>
+    <div class="chips" id="e-members" style="margin-top:10px">
+      <div class="chip chip-мама"    data-n="Мама"    onclick="togChip(this)">Мама</div>
+      <div class="chip chip-папа"    data-n="Папа"    onclick="togChip(this)">Папа</div>
+      <div class="chip chip-Арслан"  data-n="Арслан"  onclick="togChip(this)">Арслан</div>
+      <div class="chip chip-Алим"    data-n="Алим"    onclick="togChip(this)">Алим</div>
+      <div class="chip chip-Альмира" data-n="Альмира" onclick="togChip(this)">Альмира</div>
     </div>
-    <button class="add-btn" style="margin-top:12px" onclick="addEvent()">Добавить мероприятие</button>
+    <button class="btn" style="margin-top:10px" onclick="addEvent()">Добавить</button>
   </div>
 </div>
 
-<!-- ══════════════ ЗАНЯТИЯ АЛЬМИРЫ ══════════════ -->
+<!-- ══════════ ЗАНЯТИЯ АЛЬМИРЫ ══════════ -->
 <div id="page-lessons" class="page">
-  <div class="almira-header">
-    <div class="avatar">👧</div>
-    <div class="info">
-      <h2>Занятия Альмиры</h2>
-      <p>Расписание кружков и секций</p>
-    </div>
+  <div class="almira-hd">
+    <div class="av">👧</div>
+    <div><h2>Занятия Альмиры</h2><p>Расписание кружков и секций</p></div>
   </div>
-
-  <div id="lessons-list"></div>
-
+  <div id="les-list"></div>
   <div class="card">
     <h3>➕ Добавить занятие</h3>
     <div class="add-row">
-      <select id="les-subject">
-        <option value="🥋 Джиу-джитсу" data-icon="🥋">🥋 Джиу-джитсу</option>
-        <option value="🎨 Рисование"    data-icon="🎨">🎨 Рисование</option>
-        <option value="🗣 Казахский"    data-icon="🗣">🗣 Казахский</option>
+      <select id="l-subj">
+        <option>🥋 Джиу-джитсу</option>
+        <option>🎨 Рисование</option>
+        <option>🗣 Казахский</option>
         <option value="custom">✏️ Другое...</option>
       </select>
-      <input id="les-custom" placeholder="Название занятия..." style="display:none" />
+      <input id="l-custom" placeholder="Название..." style="display:none" />
     </div>
     <div class="add-row" style="margin-top:8px">
-      <select id="les-day">
-        <option>Понедельник</option>
-        <option>Вторник</option>
-        <option>Среда</option>
-        <option>Четверг</option>
-        <option>Пятница</option>
-        <option>Суббота</option>
-        <option>Воскресенье</option>
+      <select id="l-day">
+        <option>Понедельник</option><option>Вторник</option><option>Среда</option>
+        <option>Четверг</option><option>Пятница</option><option>Суббота</option><option>Воскресенье</option>
       </select>
-      <input id="les-time" type="time" />
-      <input id="les-place" placeholder="Место / онлайн" />
+      <input id="l-time" type="time" />
+      <input id="l-place" placeholder="Место..." />
     </div>
-    <button class="add-btn" style="margin-top:10px" onclick="addLesson()">Добавить занятие</button>
+    <button class="btn" style="margin-top:10px" onclick="addLesson()">Добавить занятие</button>
   </div>
 </div>
 
-<script>
-const MEMBER_KEY = {Мама:'мама',Папа:'папа',Арслан:'Арслан',Алим:'Алим',Альмира:'Альмира',все:'все'};
-const DAYS_RU   = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-const MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-const DAY_ORDER = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
+<!-- ══════════════════════════════════════════════════
+     FIREBASE SDK
+══════════════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp }                         from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set, onValue, push, remove, update }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-const LESSON_ICONS = {
-  '🥋 Джиу-джитсу': '🥋',
-  '🎨 Рисование': '🎨',
-  '🗣 Казахский': '🗣',
+// ══════════════════════════════════════════
+//   ВСТАВЬТЕ ВАШ FIREBASE CONFIG СЮДА
+// ══════════════════════════════════════════
+const firebaseConfig = {
+  apiKey:            "FIREBASE_API_KEY",
+  authDomain:        "FIREBASE_AUTH_DOMAIN",
+  databaseURL:       "FIREBASE_DATABASE_URL",
+  projectId:         "FIREBASE_PROJECT_ID",
+  storageBucket:     "FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
+  appId:             "FIREBASE_APP_ID"
 };
+// ══════════════════════════════════════════
 
-let state = JSON.parse(localStorage.getItem('family-app-v2') || 'null') || {
+const CONFIGURED = !firebaseConfig.apiKey.startsWith("FIREBASE_");
+
+const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const DAYS   = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const DAYORD = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
+const MK     = {Мама:'мама',Папа:'папа',Арслан:'Арслан',Алим:'Алим',Альмира:'Альмира',все:'все'};
+const ICONS  = {'🥋 Джиу-джитсу':'🥋','🎨 Рисование':'🎨','🗣 Казахский':'🗣'};
+
+const DOT = document.getElementById('sync-dot');
+function syncOk()  { DOT.className='ok'; }
+function syncErr() { DOT.className='err'; }
+
+// ── Fallback state (localStorage) used when Firebase not configured ──
+const DEFAULT = {
   categories: [
-    {id:'cleaning', emoji:'🧹', name:'Уборка'},
-    {id:'ironing',  emoji:'👕', name:'Глажка'},
-    {id:'groceries',emoji:'🛒', name:'Покупки'},
-    {id:'cooking',  emoji:'🍳', name:'Готовка'},
-    {id:'garden',   emoji:'🌿', name:'Двор / огород'},
-    {id:'car',      emoji:'🚗', name:'Машина'},
-    {id:'kids',     emoji:'👶', name:'Дети'},
-    {id:'finance',  emoji:'💰', name:'Финансы'},
+    {id:'cleaning',emoji:'🧹',name:'Уборка'},
+    {id:'ironing', emoji:'👕',name:'Глажка'},
+    {id:'groceries',emoji:'🛒',name:'Покупки'},
+    {id:'cooking', emoji:'🍳',name:'Готовка'},
+    {id:'garden',  emoji:'🌿',name:'Двор'},
+    {id:'car',     emoji:'🚗',name:'Машина'},
+    {id:'kids',    emoji:'👶',name:'Дети'},
+    {id:'finance', emoji:'💰',name:'Финансы'},
   ],
   duties: [
-    {id:1, text:'Вымыть полы в зале',     cat:'cleaning',  member:'Мама',    done:false},
-    {id:2, text:'Пропылесосить ковры',    cat:'cleaning',  member:'Папа',    done:false},
-    {id:3, text:'Протереть пыль',         cat:'cleaning',  member:'Арслан',  done:false},
-    {id:4, text:'Погладить рубашки',      cat:'ironing',   member:'Мама',    done:false},
-    {id:5, text:'Погладить школьную форму', cat:'ironing', member:'Альмира', done:false},
-    {id:6, text:'Купить хлеб и молоко',   cat:'groceries', member:'Папа',    done:false},
-    {id:7, text:'Купить фрукты',          cat:'groceries', member:'Алим',    done:false},
-    {id:8, text:'Приготовить ужин',       cat:'cooking',   member:'Мама',    done:false},
+    {text:'Вымыть полы',        cat:'cleaning',  member:'Мама',    done:false},
+    {text:'Пропылесосить',      cat:'cleaning',  member:'Папа',    done:false},
+    {text:'Протереть пыль',     cat:'cleaning',  member:'Арслан',  done:false},
+    {text:'Погладить рубашки',  cat:'ironing',   member:'Мама',    done:false},
+    {text:'Погладить форму',    cat:'ironing',   member:'Альмира', done:false},
+    {text:'Купить хлеб/молоко', cat:'groceries', member:'Папа',    done:false},
+    {text:'Купить фрукты',      cat:'groceries', member:'Алим',    done:false},
+    {text:'Приготовить ужин',   cat:'cooking',   member:'Мама',    done:false},
   ],
   shopping: [
-    {id:1, name:'Молоко',           qty:'2л',        done:false},
-    {id:2, name:'Хлеб',             qty:'1 буханка', done:false},
-    {id:3, name:'Яйца',             qty:'30 шт',     done:false},
-    {id:4, name:'Масло сливочное',  qty:'200г',      done:false},
-    {id:5, name:'Картофель',        qty:'2 кг',      done:false},
+    {name:'Молоко',         qty:'2л',        done:false},
+    {name:'Хлеб',           qty:'1 буханка', done:false},
+    {name:'Яйца',           qty:'30 шт',     done:false},
+    {name:'Масло',          qty:'200г',      done:false},
+    {name:'Картофель',      qty:'2 кг',      done:false},
   ],
   events: [
-    {id:1, title:'День рождения Алима',   date:'2026-06-15', time:'12:00', members:['Мама','Папа','Арслан','Алим','Альмира']},
-    {id:2, title:'Родительское собрание', date:'2026-06-10', time:'18:00', members:['Мама','Папа']},
-    {id:3, title:'Поход в кино',          date:'2026-06-20', time:'15:00', members:['Арслан','Алим','Альмира']},
+    {title:'День рождения Алима',   date:'2026-06-15',time:'12:00',members:['Мама','Папа','Арслан','Алим','Альмира']},
+    {title:'Родительское собрание', date:'2026-06-10',time:'18:00',members:['Мама','Папа']},
+    {title:'Поход в кино',          date:'2026-06-20',time:'15:00',members:['Арслан','Алим','Альмира']},
   ],
   lessons: [
-    {id:1, subject:'🥋 Джиу-джитсу', day:'Вторник',    time:'17:00', place:'Спортивный зал'},
-    {id:2, subject:'🥋 Джиу-джитсу', day:'Четверг',    time:'17:00', place:'Спортивный зал'},
-    {id:3, subject:'🎨 Рисование',   day:'Среда',      time:'16:00', place:'Арт-студия'},
-    {id:4, subject:'🗣 Казахский',   day:'Понедельник', time:'15:30', place:'Онлайн'},
-    {id:5, subject:'🗣 Казахский',   day:'Пятница',    time:'15:30', place:'Онлайн'},
+    {subject:'🥋 Джиу-джитсу',day:'Вторник',   time:'17:00',place:'Спортивный зал'},
+    {subject:'🥋 Джиу-джитсу',day:'Четверг',   time:'17:00',place:'Спортивный зал'},
+    {subject:'🎨 Рисование',  day:'Среда',     time:'16:00',place:'Арт-студия'},
+    {subject:'🗣 Казахский',  day:'Понедельник',time:'15:30',place:'Онлайн'},
+    {subject:'🗣 Казахский',  day:'Пятница',   time:'15:30',place:'Онлайн'},
   ],
-  nextId: 200
 };
 
-function save() { localStorage.setItem('family-app-v2', JSON.stringify(state)); }
+// ────────────────────────────────────────────────────────
+//  LOCAL MODE (Firebase not configured)
+// ────────────────────────────────────────────────────────
+if(!CONFIGURED) {
+  document.getElementById('setup-banner').style.display = 'block';
+  DOT.className = 'err';
 
-// ── Навигация ──
-function showPage(id, btn) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  btn.classList.add('active');
-  ({duties: renderDuties, shopping: renderShopping, events: renderEvents, lessons: renderLessons})[id]?.();
-}
-
-// ══════════════ ОБЯЗАННОСТИ ══════════════
-
-function renderCatSelect() {
-  const sel = document.getElementById('duty-cat-select');
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">— выберите категорию —</option>';
-  state.categories.forEach(c => {
-    sel.innerHTML += `<option value="${c.id}">${c.emoji} ${c.name}</option>`;
-  });
-  if(cur) sel.value = cur;
-}
-
-function renderCatTags() {
-  const box = document.getElementById('cat-tags');
-  box.innerHTML = state.categories.map(c =>
-    `<span class="cat-tag">${c.emoji} ${c.name}<span class="del-cat" onclick="delCategory('${c.id}')">×</span></span>`
-  ).join('');
-}
-
-function renderDuties() {
-  renderCatSelect();
-  renderCatTags();
-  const container = document.getElementById('duties-sections');
-  container.innerHTML = '';
-
-  state.categories.forEach(cat => {
-    const items = state.duties.filter(d => d.cat === cat.id);
-    if(!items.length) return;
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `<h3>${cat.emoji} ${cat.name}</h3><ul class="task-list" id="cat-${cat.id}"></ul>`;
-    container.appendChild(card);
-    const ul = document.getElementById('cat-'+cat.id);
-    items.forEach(d => {
-      const mk = MEMBER_KEY[d.member] || 'все';
-      ul.innerHTML += `
-        <li class="task-item ${d.done?'done':''}">
-          <input type="checkbox" ${d.done?'checked':''} onchange="toggleDuty(${d.id})">
-          <span>${d.text}</span>
-          <span class="assignee member-color-${mk}">${d.member}</span>
-          <button class="del-btn" onclick="delDuty(${d.id})">×</button>
-        </li>`;
-    });
-  });
-
-  // Задачи без известной категории
-  const knownCats = new Set(state.categories.map(c=>c.id));
-  const orphans = state.duties.filter(d => !knownCats.has(d.cat));
-  if(orphans.length) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `<h3>📌 Прочее</h3><ul class="task-list" id="cat-orphan"></ul>`;
-    container.appendChild(card);
-    orphans.forEach(d => {
-      const mk = MEMBER_KEY[d.member] || 'все';
-      document.getElementById('cat-orphan').innerHTML += `
-        <li class="task-item ${d.done?'done':''}">
-          <input type="checkbox" ${d.done?'checked':''} onchange="toggleDuty(${d.id})">
-          <span>${d.text}</span>
-          <span class="assignee member-color-${mk}">${d.member}</span>
-          <button class="del-btn" onclick="delDuty(${d.id})">×</button>
-        </li>`;
-    });
-  }
-
-  const done = state.duties.filter(d=>d.done).length;
-  const total = state.duties.length;
-  document.getElementById('stat-done').textContent = done;
-  document.getElementById('stat-total').textContent = total;
-  document.getElementById('stat-pct').textContent = total ? Math.round(done/total*100)+'%' : '0%';
-}
-
-function toggleDuty(id) {
-  const d = state.duties.find(x=>x.id===id);
-  if(d) d.done = !d.done;
-  save(); renderDuties();
-}
-function delDuty(id) {
-  state.duties = state.duties.filter(x=>x.id!==id);
-  save(); renderDuties();
-}
-function addDuty() {
-  const text = document.getElementById('duty-text').value.trim();
-  const cat  = document.getElementById('duty-cat-select').value;
-  if(!text) return alert('Введите название задачи');
-  if(!cat)  return alert('Выберите категорию');
-  state.duties.push({ id:++state.nextId, text, cat, member:document.getElementById('duty-member').value, done:false });
-  document.getElementById('duty-text').value = '';
-  save(); renderDuties();
-}
-
-function addCategory() {
-  const emoji = document.getElementById('new-cat-emoji').value.trim() || '📌';
-  const name  = document.getElementById('new-cat-name').value.trim();
-  if(!name) return alert('Введите название категории');
-  const id = 'cat_' + Date.now();
-  state.categories.push({id, emoji, name});
-  document.getElementById('new-cat-emoji').value = '';
-  document.getElementById('new-cat-name').value = '';
-  save(); renderDuties();
-}
-function delCategory(id) {
-  if(state.duties.some(d=>d.cat===id)) {
-    if(!confirm('В этой категории есть задачи. Удалить категорию вместе с задачами?')) return;
-    state.duties = state.duties.filter(d=>d.cat!==id);
-  }
-  state.categories = state.categories.filter(c=>c.id!==id);
-  save(); renderDuties();
-}
-
-// ══════════════ ПОКУПКИ ══════════════
-function renderShopping() {
-  const ul = document.getElementById('shop-list');
-  ul.innerHTML = '';
-  state.shopping.forEach(s => {
-    ul.innerHTML += `
-      <li class="shop-item ${s.done?'done':''}">
-        <input type="checkbox" ${s.done?'checked':''} onchange="toggleShop(${s.id})">
-        <span>${s.name}</span>
-        ${s.qty?`<span class="qty">${s.qty}</span>`:''}
-        <button class="del-btn" onclick="delShop(${s.id})">×</button>
-      </li>`;
-  });
-}
-function toggleShop(id) {
-  const s = state.shopping.find(x=>x.id===id);
-  if(s) s.done = !s.done;
-  save(); renderShopping();
-}
-function delShop(id) {
-  state.shopping = state.shopping.filter(x=>x.id!==id);
-  save(); renderShopping();
-}
-function addShopItem() {
-  const name = document.getElementById('shop-item').value.trim();
-  if(!name) return;
-  state.shopping.push({id:++state.nextId, name, qty:document.getElementById('shop-qty').value.trim(), done:false});
-  document.getElementById('shop-item').value = '';
-  document.getElementById('shop-qty').value = '';
-  save(); renderShopping();
-}
-function clearBought() {
-  state.shopping = state.shopping.filter(s=>!s.done);
-  save(); renderShopping();
-}
-
-// ══════════════ МЕРОПРИЯТИЯ ══════════════
-let calYear = new Date().getFullYear();
-let calMonth = new Date().getMonth();
-
-function renderCalendar() {
-  document.getElementById('cal-title').textContent = MONTHS_RU[calMonth] + ' ' + calYear;
-  const grid = document.getElementById('cal-grid');
-  grid.innerHTML = DAYS_RU.map(d=>`<div class="cal-header">${d}</div>`).join('');
-
-  const first = new Date(calYear, calMonth, 1).getDay();
-  const offset = first === 0 ? 6 : first - 1;
-  const days = new Date(calYear, calMonth+1, 0).getDate();
-  const today = new Date();
-  const eventDays = new Set(
-    state.events
-      .filter(e => { const d=new Date(e.date); return d.getFullYear()===calYear && d.getMonth()===calMonth; })
-      .map(e => new Date(e.date).getDate())
+  let S = JSON.parse(localStorage.getItem('fam') || 'null') || structuredClone(DEFAULT);
+  // assign ids if missing
+  ['duties','shopping','events','lessons'].forEach(k =>
+    S[k].forEach((x,i) => { if(!x.id) x.id = 'local_'+k+'_'+i; })
   );
+  function saveLocal() { localStorage.setItem('fam', JSON.stringify(S)); }
 
-  for(let i=0;i<offset;i++) grid.innerHTML += `<div class="cal-day empty"></div>`;
-  for(let d=1;d<=days;d++) {
-    const isToday = today.getFullYear()===calYear && today.getMonth()===calMonth && today.getDate()===d;
-    grid.innerHTML += `<div class="cal-day ${isToday?'today':''} ${eventDays.has(d)?'has-event':''}">${d}</div>`;
+  // Wire global functions for local mode
+  window.addDuty   = () => { const t=document.getElementById('d-text').value.trim(),c=document.getElementById('d-cat').value; if(!t||!c) return alert('Заполните поля'); S.duties.push({id:'d'+Date.now(),text:t,cat:c,member:document.getElementById('d-who').value,done:false}); document.getElementById('d-text').value=''; saveLocal(); renderDuties(S.categories,S.duties); };
+  window.addCat    = () => { const e=document.getElementById('c-emoji').value.trim()||'📌',n=document.getElementById('c-name').value.trim(); if(!n) return alert('Введите название'); S.categories.push({id:'c'+Date.now(),emoji:e,name:n}); document.getElementById('c-emoji').value=''; document.getElementById('c-name').value=''; saveLocal(); renderDuties(S.categories,S.duties); };
+  window.delCat    = id => { if(S.duties.some(d=>d.cat===id)&&!confirm('Удалить вместе с задачами?')) return; S.duties=S.duties.filter(d=>d.cat!==id); S.categories=S.categories.filter(c=>c.id!==id); saveLocal(); renderDuties(S.categories,S.duties); };
+  window.togDuty   = id => { const d=S.duties.find(x=>x.id===id); if(d){d.done=!d.done; saveLocal(); renderDuties(S.categories,S.duties);} };
+  window.delDuty   = id => { S.duties=S.duties.filter(x=>x.id!==id); saveLocal(); renderDuties(S.categories,S.duties); };
+  window.addShop   = () => { const n=document.getElementById('s-name').value.trim(); if(!n) return; S.shopping.push({id:'s'+Date.now(),name:n,qty:document.getElementById('s-qty').value.trim(),done:false}); document.getElementById('s-name').value=''; document.getElementById('s-qty').value=''; saveLocal(); renderShopping(S.shopping); };
+  window.togShop   = id => { const s=S.shopping.find(x=>x.id===id); if(s){s.done=!s.done; saveLocal(); renderShopping(S.shopping);} };
+  window.delShop   = id => { S.shopping=S.shopping.filter(x=>x.id!==id); saveLocal(); renderShopping(S.shopping); };
+  window.clearBought=()=>{ S.shopping=S.shopping.filter(s=>!s.done); saveLocal(); renderShopping(S.shopping); };
+  window.addEvent  = () => { const t=document.getElementById('e-title').value.trim(),d=document.getElementById('e-date').value; if(!t||!d) return alert('Укажите название и дату'); const m=[...document.querySelectorAll('#e-members .chip.sel')].map(c=>c.dataset.n); S.events.push({id:'e'+Date.now(),title:t,date:d,time:document.getElementById('e-time').value,members:m}); clearEvForm(); saveLocal(); renderEvents(S.events); };
+  window.delEvent  = id => { S.events=S.events.filter(x=>x.id!==id); saveLocal(); renderEvents(S.events); };
+  window.addLesson = () => { const sv=document.getElementById('l-subj').value,tm=document.getElementById('l-time').value; if(!tm) return alert('Укажите время'); const subj=sv==='custom'?document.getElementById('l-custom').value.trim():sv; if(!subj) return alert('Введите название'); S.lessons.push({id:'l'+Date.now(),subject:subj,day:document.getElementById('l-day').value,time:tm,place:document.getElementById('l-place').value.trim()}); clearLesForm(); saveLocal(); renderLessons(S.lessons); };
+  window.delLesson = id => { S.lessons=S.lessons.filter(x=>x.id!==id); saveLocal(); renderLessons(S.lessons); };
+
+  renderDuties(S.categories, S.duties);
+  renderShopping(S.shopping);
+  renderEvents(S.events);
+  renderLessons(S.lessons);
+
+} else {
+// ────────────────────────────────────────────────────────
+//  FIREBASE MODE (real-time sync)
+// ────────────────────────────────────────────────────────
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+
+  // Initialize default data if database is empty
+  async function initIfEmpty(path, defaultVal) {
+    const r = ref(db, path);
+    onValue(r, snap => { if(!snap.exists()) set(r, defaultVal); }, {onlyOnce:true});
   }
-}
-function changeMonth(dir) {
-  calMonth += dir;
-  if(calMonth<0){calMonth=11;calYear--;}
-  if(calMonth>11){calMonth=0;calYear++;}
-  renderCalendar();
-}
-function renderEvents() {
-  renderCalendar();
-  const sorted = [...state.events].sort((a,b)=>a.date.localeCompare(b.date));
-  const container = document.getElementById('events-list');
-  container.innerHTML = '';
-  if(!sorted.length){ container.innerHTML='<div style="color:#a0aec0;text-align:center;padding:20px">Нет мероприятий</div>'; return; }
-  sorted.forEach(ev => {
-    const d = new Date(ev.date);
-    const chips = ev.members.map(m=>`<span class="chip-sm member-color-${MEMBER_KEY[m]||'все'}">${m}</span>`).join('');
-    container.innerHTML += `
-      <div class="event-item">
-        <div class="event-date"><div class="day">${d.getDate()}</div>${MONTHS_RU[d.getMonth()].slice(0,3)}</div>
-        <div class="event-info">
-          <div class="title">${ev.title}</div>
-          <div class="meta">${ev.time||''}</div>
-          <div class="event-participants">${chips}</div>
-        </div>
-        <button class="del-btn" onclick="delEvent(${ev.id})">×</button>
-      </div>`;
-  });
-}
-function toggleEvMember(el) { el.classList.toggle('selected'); }
-function addEvent() {
-  const title = document.getElementById('ev-title').value.trim();
-  const date  = document.getElementById('ev-date').value;
-  if(!title||!date) return alert('Укажите название и дату');
-  const members = [...document.querySelectorAll('#ev-members .chip.selected')].map(c=>c.dataset.name);
-  state.events.push({id:++state.nextId, title, date, time:document.getElementById('ev-time').value, members});
-  document.getElementById('ev-title').value='';
-  document.getElementById('ev-date').value='';
-  document.getElementById('ev-time').value='';
-  document.querySelectorAll('#ev-members .chip').forEach(c=>c.classList.remove('selected'));
-  save(); renderEvents();
-}
-function delEvent(id) {
-  state.events = state.events.filter(x=>x.id!==id);
-  save(); renderEvents();
+  initIfEmpty('categories', Object.fromEntries(DEFAULT.categories.map(c=>[c.id,c])));
+  DEFAULT.duties.forEach((d,i)   => initIfEmpty('duties/d'+i,  {...d, id:'d'+i}));
+  DEFAULT.shopping.forEach((s,i) => initIfEmpty('shopping/s'+i,{...s, id:'s'+i}));
+  DEFAULT.events.forEach((e,i)   => initIfEmpty('events/e'+i,  {...e, id:'e'+i}));
+  DEFAULT.lessons.forEach((l,i)  => initIfEmpty('lessons/l'+i, {...l, id:'l'+i}));
+
+  let cats=[], duties=[], shopping=[], events=[], lessons=[];
+
+  // Real-time listeners
+  onValue(ref(db,'categories'), snap => {
+    cats = snap.val() ? Object.values(snap.val()) : [];
+    renderDuties(cats, duties); syncOk();
+  }, ()=>syncErr());
+
+  onValue(ref(db,'duties'), snap => {
+    duties = snap.val() ? Object.values(snap.val()) : [];
+    renderDuties(cats, duties); syncOk();
+  }, ()=>syncErr());
+
+  onValue(ref(db,'shopping'), snap => {
+    shopping = snap.val() ? Object.values(snap.val()) : [];
+    renderShopping(shopping); syncOk();
+  }, ()=>syncErr());
+
+  onValue(ref(db,'events'), snap => {
+    events = snap.val() ? Object.values(snap.val()) : [];
+    renderEvents(events); syncOk();
+  }, ()=>syncErr());
+
+  onValue(ref(db,'lessons'), snap => {
+    lessons = snap.val() ? Object.values(snap.val()) : [];
+    renderLessons(lessons); syncOk();
+  }, ()=>syncErr());
+
+  // ── CRUD via Firebase ──
+  window.addDuty = () => {
+    const t=document.getElementById('d-text').value.trim(), c=document.getElementById('d-cat').value;
+    if(!t||!c) return alert('Заполните поля');
+    const id = 'd'+Date.now();
+    set(ref(db,'duties/'+id), {id,text:t,cat:c,member:document.getElementById('d-who').value,done:false});
+    document.getElementById('d-text').value='';
+  };
+  window.addCat = () => {
+    const e=document.getElementById('c-emoji').value.trim()||'📌', n=document.getElementById('c-name').value.trim();
+    if(!n) return alert('Введите название');
+    const id='c'+Date.now();
+    set(ref(db,'categories/'+id), {id,emoji:e,name:n});
+    document.getElementById('c-emoji').value=''; document.getElementById('c-name').value='';
+  };
+  window.delCat = id => {
+    if(duties.some(d=>d.cat===id)&&!confirm('Удалить вместе с задачами?')) return;
+    duties.filter(d=>d.cat===id).forEach(d=>remove(ref(db,'duties/'+d.id)));
+    remove(ref(db,'categories/'+id));
+  };
+  window.togDuty = id => {
+    const d=duties.find(x=>x.id===id);
+    if(d) update(ref(db,'duties/'+id), {done:!d.done});
+  };
+  window.delDuty  = id => remove(ref(db,'duties/'+id));
+  window.addShop  = () => {
+    const n=document.getElementById('s-name').value.trim(); if(!n) return;
+    const id='s'+Date.now();
+    set(ref(db,'shopping/'+id), {id,name:n,qty:document.getElementById('s-qty').value.trim(),done:false});
+    document.getElementById('s-name').value=''; document.getElementById('s-qty').value='';
+  };
+  window.togShop  = id => { const s=shopping.find(x=>x.id===id); if(s) update(ref(db,'shopping/'+id),{done:!s.done}); };
+  window.delShop  = id => remove(ref(db,'shopping/'+id));
+  window.clearBought = () => shopping.filter(s=>s.done).forEach(s=>remove(ref(db,'shopping/'+s.id)));
+  window.addEvent = () => {
+    const t=document.getElementById('e-title').value.trim(), d=document.getElementById('e-date').value;
+    if(!t||!d) return alert('Укажите название и дату');
+    const m=[...document.querySelectorAll('#e-members .chip.sel')].map(c=>c.dataset.n);
+    const id='e'+Date.now();
+    set(ref(db,'events/'+id), {id,title:t,date:d,time:document.getElementById('e-time').value,members:m});
+    clearEvForm();
+  };
+  window.delEvent  = id => remove(ref(db,'events/'+id));
+  window.addLesson = () => {
+    const sv=document.getElementById('l-subj').value, tm=document.getElementById('l-time').value;
+    if(!tm) return alert('Укажите время');
+    const subj=sv==='custom'?document.getElementById('l-custom').value.trim():sv;
+    if(!subj) return alert('Введите название');
+    const id='l'+Date.now();
+    set(ref(db,'lessons/'+id), {id,subject:subj,day:document.getElementById('l-day').value,time:tm,place:document.getElementById('l-place').value.trim()});
+    clearLesForm();
+  };
+  window.delLesson = id => remove(ref(db,'lessons/'+id));
 }
 
-// ══════════════ ЗАНЯТИЯ АЛЬМИРЫ ══════════════
+// ────────────────────────────────────────────────────────
+//  RENDER FUNCTIONS (shared by both modes)
+// ────────────────────────────────────────────────────────
 
-// показать/скрыть поле "другое"
-document.getElementById('les-subject').addEventListener('change', function() {
-  document.getElementById('les-custom').style.display = this.value === 'custom' ? 'block' : 'none';
-});
+function renderDuties(cats, duties) {
+  // update category select
+  const sel = document.getElementById('d-cat');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— категория —</option>';
+  (cats||[]).forEach(c => sel.innerHTML += `<option value="${c.id}">${c.emoji} ${c.name}</option>`);
+  if(cur) sel.value=cur;
 
-function renderLessons() {
-  const container = document.getElementById('lessons-list');
-  container.innerHTML = '';
-  const byDay = {};
-  DAY_ORDER.forEach(d => byDay[d]=[]);
-  state.lessons.forEach(l => { if(byDay[l.day]) byDay[l.day].push(l); });
+  // category tags
+  document.getElementById('cat-tags').innerHTML =
+    (cats||[]).map(c=>`<span class="cat-tag">${c.emoji} ${c.name}<span class="x" onclick="delCat('${c.id}')">×</span></span>`).join('');
 
-  DAY_ORDER.forEach(day => {
-    const items = byDay[day].sort((a,b)=>a.time.localeCompare(b.time));
+  // duty lists
+  const container = document.getElementById('duty-sections');
+  container.innerHTML='';
+  (cats||[]).forEach(cat => {
+    const items=(duties||[]).filter(d=>d.cat===cat.id);
     if(!items.length) return;
-    container.innerHTML += `<div class="section-title">📆 ${day}</div>`;
-    items.forEach(l => {
-      const icon = LESSON_ICONS[l.subject] || '📚';
-      container.innerHTML += `
-        <div class="lesson-card">
-          <div class="lesson-icon">${icon}</div>
-          <div class="lesson-body">
-            <div class="lesson-name">${l.subject}</div>
-            <div class="lesson-schedule">${day}</div>
-            ${l.place ? `<div class="lesson-place">📍 ${l.place}</div>` : ''}
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-            <div class="lesson-time-badge">${l.time}</div>
-            <button class="del-btn" onclick="delLesson(${l.id})">×</button>
-          </div>
+    const card=document.createElement('div'); card.className='card';
+    card.innerHTML=`<h3>${cat.emoji} ${cat.name}</h3><div id="dc-${cat.id}"></div>`;
+    container.appendChild(card);
+    items.forEach(d=>{
+      const mk=MK[d.member]||'все';
+      document.getElementById('dc-'+cat.id).innerHTML+=`
+        <div class="task-row ${d.done?'done':''}">
+          <input type=checkbox ${d.done?'checked':''} onchange="togDuty('${d.id}')">
+          <span class="task-text">${d.text}</span>
+          <span class="badge mc-${mk}">${d.member}</span>
+          <button class="del" onclick="delDuty('${d.id}')">×</button>
         </div>`;
     });
   });
 
-  if(!state.lessons.length)
-    container.innerHTML='<div style="color:#a0aec0;text-align:center;padding:20px">Нет занятий</div>';
+  const done=(duties||[]).filter(d=>d.done).length, total=(duties||[]).length;
+  document.getElementById('st-done').textContent=done;
+  document.getElementById('st-total').textContent=total;
+  document.getElementById('st-pct').textContent=total?Math.round(done/total*100)+'%':'0%';
 }
 
-function addLesson() {
-  const selVal = document.getElementById('les-subject').value;
-  const time   = document.getElementById('les-time').value;
-  if(!time) return alert('Укажите время');
+function renderShopping(shopping) {
+  document.getElementById('shop-list').innerHTML=
+    (shopping||[]).map(s=>`
+      <div class="shop-row ${s.done?'done':''}">
+        <input type=checkbox ${s.done?'checked':''} onchange="togShop('${s.id}')">
+        <span class="shop-name">${s.name}</span>
+        ${s.qty?`<span class="qty">${s.qty}</span>`:''}
+        <button class="del" onclick="delShop('${s.id}')">×</button>
+      </div>`).join('');
+}
 
-  let subject;
-  if(selVal === 'custom') {
-    subject = document.getElementById('les-custom').value.trim();
-    if(!subject) return alert('Введите название занятия');
-  } else {
-    subject = selVal;
+let calY=new Date().getFullYear(), calM=new Date().getMonth();
+function renderCalendar(events) {
+  document.getElementById('cal-title').textContent=MONTHS[calM]+' '+calY;
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML=DAYS.map(d=>`<div class="cal-hd">${d}</div>`).join('');
+  const first=new Date(calY,calM,1).getDay(), off=first===0?6:first-1;
+  const days=new Date(calY,calM+1,0).getDate(), today=new Date();
+  const evDays=new Set((events||[]).filter(e=>{const d=new Date(e.date);return d.getFullYear()===calY&&d.getMonth()===calM;}).map(e=>new Date(e.date).getDate()));
+  for(let i=0;i<off;i++) grid.innerHTML+=`<div class="cal-d empty"></div>`;
+  for(let d=1;d<=days;d++){
+    const isT=today.getFullYear()===calY&&today.getMonth()===calM&&today.getDate()===d;
+    grid.innerHTML+=`<div class="cal-d ${isT?'today':''} ${evDays.has(d)?'has-ev':''}">${d}</div>`;
   }
-
-  state.lessons.push({
-    id: ++state.nextId,
-    subject,
-    day:   document.getElementById('les-day').value,
-    time,
-    place: document.getElementById('les-place').value.trim()
+}
+function renderEvents(events) {
+  renderCalendar(events);
+  const sorted=[...(events||[])].sort((a,b)=>a.date.localeCompare(b.date));
+  const c=document.getElementById('ev-list');
+  if(!sorted.length){c.innerHTML='<div style="color:#a0aec0;text-align:center;padding:16px">Нет мероприятий</div>';return;}
+  c.innerHTML=sorted.map(ev=>{
+    const d=new Date(ev.date), chips=(ev.members||[]).map(m=>`<span class="badge mc-${MK[m]||'все'}">${m}</span>`).join('');
+    return `<div class="ev-row">
+      <div class="ev-date"><div class="d">${d.getDate()}</div>${MONTHS[d.getMonth()].slice(0,3)}</div>
+      <div class="ev-info"><div class="t">${ev.title}</div><div class="m">${ev.time||''}</div><div class="ev-pp">${chips}</div></div>
+      <button class="del" onclick="delEvent('${ev.id}')">×</button>
+    </div>`;
+  }).join('');
+}
+function renderLessons(lessons) {
+  const c=document.getElementById('les-list'); c.innerHTML='';
+  const byDay={}; DAYORD.forEach(d=>byDay[d]=[]);
+  (lessons||[]).forEach(l=>{if(byDay[l.day])byDay[l.day].push(l);});
+  DAYORD.forEach(day=>{
+    const items=byDay[day].sort((a,b)=>a.time.localeCompare(b.time));
+    if(!items.length) return;
+    c.innerHTML+=`<div class="sec">📆 ${day}</div>`;
+    items.forEach(l=>{
+      const icon=ICONS[l.subject]||'📚';
+      c.innerHTML+=`<div class="les-card">
+        <div class="les-icon">${icon}</div>
+        <div class="les-body"><div class="les-name">${l.subject}</div><div class="les-meta">${day}</div>${l.place?`<div class="les-place">📍 ${l.place}</div>`:''}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><div class="les-time">${l.time}</div><button class="del" onclick="delLesson('${l.id}')">×</button></div>
+      </div>`;
+    });
   });
-  document.getElementById('les-time').value = '';
-  document.getElementById('les-place').value = '';
-  document.getElementById('les-custom').value = '';
-  save(); renderLessons();
-}
-function delLesson(id) {
-  state.lessons = state.lessons.filter(x=>x.id!==id);
-  save(); renderLessons();
+  if(!(lessons||[]).length) c.innerHTML='<div style="color:#a0aec0;text-align:center;padding:16px">Нет занятий</div>';
 }
 
-// init
-renderDuties();
+// ── Navigation ──
+window.go = (id, btn) => {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+};
+
+window.chMon = dir => {
+  calM+=dir; if(calM<0){calM=11;calY--;} if(calM>11){calM=0;calY++;}
+  renderCalendar(window._evCache||[]);
+};
+
+window.togChip = el => el.classList.toggle('sel');
+
+document.getElementById('l-subj').addEventListener('change',function(){
+  document.getElementById('l-custom').style.display=this.value==='custom'?'block':'none';
+});
+
+function clearEvForm(){
+  document.getElementById('e-title').value='';
+  document.getElementById('e-date').value='';
+  document.getElementById('e-time').value='';
+  document.querySelectorAll('#e-members .chip').forEach(c=>c.classList.remove('sel'));
+}
+function clearLesForm(){
+  document.getElementById('l-time').value='';
+  document.getElementById('l-place').value='';
+  document.getElementById('l-custom').value='';
+}
 </script>
 </body>
 </html>
