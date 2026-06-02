@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Юрист.AI — правовой помощник РК</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<style>
+  :root{
+    --navy:#1a2942; --navy2:#243a5e; --gold:#b8924a; --gold-l:#d4b06a;
+    --bg:#eef1f6; --card:#ffffff; --ink:#1f2937; --muted:#6b7280;
+    --line:#e3e8ef; --ok:#2f855a; --warn:#c05621; --risk:#c53030; --accent:#2b5cabaa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:14px;line-height:1.5}
+
+  header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px}
+  header .logo{width:38px;height:38px;border-radius:9px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+  header h1{font-size:18px;font-weight:700;letter-spacing:.3px}
+  header .sub{font-size:11px;opacity:.8;margin-top:2px}
+  header .spacer{flex:1}
+  #key-dot{width:9px;height:9px;border-radius:50%;background:#e0a;background:#f6ad55;display:inline-block}
+  #key-dot.ok{background:#68d391}
+  #key-dot.err{background:#fc8181}
+
+  nav{display:flex;overflow-x:auto;background:#fff;border-bottom:2px solid var(--line);padding:0 6px;position:sticky;top:0;z-index:30}
+  nav button{flex-shrink:0;padding:13px 13px;border:none;background:none;cursor:pointer;font-size:13px;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:.15s}
+  nav button.active{color:var(--navy);border-bottom-color:var(--gold);font-weight:600}
+  nav button:hover{color:var(--navy)}
+
+  .page{display:none;padding:18px;max-width:920px;margin:0 auto}
+  .page.active{display:block;animation:fade .2s}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--card);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 1px 4px rgba(20,30,50,.07);border:1px solid var(--line)}
+  .card h2{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .card h3{font-size:14px;font-weight:700;color:var(--navy);margin:14px 0 8px}
+  .card .desc{font-size:12.5px;color:var(--muted);margin-bottom:14px;line-height:1.55}
+
+  label{display:block;font-size:12px;font-weight:600;color:var(--navy);margin:10px 0 5px}
+  input[type=text],input[type=password],textarea,select{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;font-size:13.5px;font-family:inherit;color:var(--ink);background:#fbfcfe;transition:.15s}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--gold);background:#fff}
+  textarea{resize:vertical;min-height:140px;line-height:1.5}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row>div{flex:1;min-width:180px}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;background:var(--navy);color:#fff;border:none;padding:11px 18px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;transition:.15s}
+  .btn:hover{background:var(--navy2)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.gold{background:var(--gold)}.btn.gold:hover{background:var(--gold-l)}
+  .btn.ghost{background:#fff;color:var(--navy);border:1.5px solid var(--line)}
+  .btn.ghost:hover{border-color:var(--gold);color:var(--gold)}
+  .btn.sm{padding:7px 12px;font-size:12px;border-radius:8px}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+  .drop{border:2px dashed #c4cdda;border-radius:11px;padding:18px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer;transition:.15s;background:#fafbfd}
+  .drop:hover,.drop.over{border-color:var(--gold);background:#fff;color:var(--navy)}
+  .drop .files{margin-top:8px;font-size:12px;color:var(--navy);font-weight:600}
+  .fileitem{display:inline-flex;align-items:center;gap:5px;background:#eef2f8;padding:4px 9px;border-radius:7px;margin:3px;font-size:12px}
+  .fileitem b{font-weight:600}
+  .fileitem span{cursor:pointer;color:var(--risk);font-weight:700}
+
+  .tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .tabs button{padding:8px 14px;border:1.5px solid var(--line);background:#fff;border-radius:20px;font-size:12.5px;cursor:pointer;color:var(--muted);font-weight:600}
+  .tabs button.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+  .out{margin-top:16px;border:1px solid var(--line);border-radius:11px;background:#fff;display:none}
+  .out.show{display:block}
+  .out-head{display:flex;align-items:center;gap:10px;padding:11px 15px;border-bottom:1px solid var(--line);background:#f7f9fc;border-radius:11px 11px 0 0}
+  .out-head b{color:var(--navy);font-size:13px}
+  .out-head .spacer{flex:1}
+  .out-body{padding:16px 18px;font-size:13.5px;line-height:1.65;max-height:70vh;overflow:auto}
+  .out-body h1{font-size:18px;margin:14px 0 8px;color:var(--navy)}
+  .out-body h2{font-size:16px;margin:14px 0 7px;color:var(--navy);border:none;padding:0}
+  .out-body h3{font-size:14px;margin:12px 0 6px}
+  .out-body p{margin:8px 0}
+  .out-body ul,.out-body ol{margin:8px 0 8px 22px}
+  .out-body li{margin:4px 0}
+  .out-body table{border-collapse:collapse;width:100%;margin:12px 0;font-size:12.5px}
+  .out-body th,.out-body td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  .out-body th{background:#f1f5fa;color:var(--navy);font-weight:700}
+  .out-body tr:nth-child(even) td{background:#fafbfd}
+  .out-body blockquote{border-left:3px solid var(--gold);padding:4px 12px;color:var(--muted);margin:10px 0;background:#fdfaf3}
+  .out-body code{background:#f0f3f8;padding:1px 5px;border-radius:4px;font-size:12px}
+  .out-body pre{background:#f7f9fc;padding:12px;border-radius:8px;overflow:auto}
+  .out-body del{background:#fde2e2;color:#9b2c2c;text-decoration:line-through}
+  .out-body ins{background:#d7f0dd;color:#22633b;text-decoration:none}
+
+  .spin{width:15px;height:15px;border:2.5px solid #ffffff66;border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
+  .out-head .spin{border:2.5px solid #c9d4e3;border-top-color:var(--navy)}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px}
+  .pill.risk{background:#fde2e2;color:var(--risk)}
+  .pill.warn{background:#feebc8;color:var(--warn)}
+  .pill.ok{background:#d7f0dd;color:var(--ok)}
+
+  .listitem{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fff}
+  .listitem .t{font-weight:700;color:var(--navy);font-size:13.5px}
+  .listitem .m{font-size:12px;color:var(--muted);margin-top:3px}
+  .listitem .acts{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+
+  .empty{text-align:center;color:var(--muted);font-size:13px;padding:24px 10px}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.5}
+  .warnbox{background:#fffaf0;border:1px solid #f0d9a8;border-radius:9px;padding:10px 13px;font-size:12px;color:#7a5a1e;margin-bottom:14px;line-height:1.55}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+  .feat{display:flex;gap:11px;padding:13px;border:1px solid var(--line);border-radius:11px;cursor:pointer;transition:.15s;background:#fff}
+  .feat:hover{border-color:var(--gold);transform:translateY(-1px);box-shadow:0 3px 10px rgba(20,30,50,.08)}
+  .feat .ic{font-size:24px;flex-shrink:0}
+  .feat .ft{font-weight:700;color:var(--navy);font-size:13.5px}
+  .feat .fd{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.45}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 20px;border-radius:10px;font-size:13px;z-index:100;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1;bottom:30px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">⚖️</div>
+  <div>
+    <h1>Юрист.AI</h1>
+    <div class="sub">Правовой ассистент · Республика Казахстан</div>
+  </div>
+  <div class="spacer"></div>
+  <div style="font-size:11px;text-align:right;opacity:.85">
+    <span id="key-dot"></span> <span id="key-label">ключ не задан</span>
+  </div>
+</header>
+
+<nav id="nav"></nav>
+
+<!-- ───────── ГЛАВНАЯ ───────── -->
+<div class="page active" data-page="home">
+  <div class="card">
+    <h2>🏠 Рабочий стол</h2>
+    <div class="desc">Выберите задачу. Все разделы работают на базе модели Claude и ориентированы на законодательство Республики Казахстан. Результаты можно копировать и выгружать в Word.</div>
+    <div class="grid2" id="home-feats"></div>
+  </div>
+  <div class="warnbox">
+    ⚠️ <b>Важно.</b> Ассистент помогает анализировать и готовить документы, но не заменяет юриста. Любые ссылки на НПА, сроки и редакции норм проверяйте по официальному источнику — <b>adilet.zan.kz</b> и ИС «Параграф». Окончательное решение принимает специалист.
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">📁 Последние материалы</h3>
+    <div id="home-history"></div>
+  </div>
+</div>
+
+<!-- ───────── МОНИТОРИНГ ───────── -->
+<div class="page" data-page="monitor">
+  <div class="card">
+    <h2>📋 Мониторинг законодательства <span class="pill ok" style="vertical-align:middle">live</span></h2>
+    <div class="desc">Живая лента официального эталонного банка НПА РК <b>adilet.zan.kz</b> — реально опубликованные и изменённые акты в порядке последних изменений. Фильтруйте по ключевым словам, открывайте акт на adilet или запрашивайте разбор по реальному тексту документа.</div>
+    <div id="proxy-warn" class="warnbox" style="display:none">
+      ⚠️ <b>Живая лента доступна только при локальном запуске.</b> На этом устройстве она выключена (вы открыли приложение по ссылке или как файл). Чтобы видеть ленту adilet в реальном времени — запустите <code>serve.ps1</code> и откройте <b>http://localhost:3355/</b>.<br>
+      На остальных устройствах пользуйтесь блоком <b>«🧩 Тематический ИИ‑обзор»</b> ниже и кнопками «↗ Открыть на adilet».
+    </div>
+    <div class="row">
+      <div style="flex:2">
+        <label>Фильтр по ключевым словам (через запятую)</label>
+        <input type="text" id="feed-filter" placeholder="напр.: налог, труд, госзакуп, лицензи" oninput="renderFeed()">
+      </div>
+      <div style="max-width:140px">
+        <label>Язык</label>
+        <select id="feed-lang" onchange="loadFeed()">
+          <option value="rus">Русский</option>
+          <option value="kaz">Қазақша</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="loadFeed()">🔄 Обновить ленту</button>
+      <button class="btn ghost" onclick="aiFeedSummary()">🧠 ИИ-сводка по показанным</button>
+      <button class="btn ghost" onclick="addWatch()">★ Сохранить фильтр в отслеживаемые</button>
+    </div>
+    <div id="feed-status" class="hint"></div>
+    <div id="feed-list" style="margin-top:8px"></div>
+    <div class="out" id="mon-out"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">★ Отслеживаемые темы</h3>
+    <div class="desc" style="margin-bottom:8px">Сохранённые фильтры. «Проверить» подставит фильтр и обновит живую ленту.</div>
+    <div id="watchlist"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">🧩 Тематический ИИ-обзор</h3>
+    <div class="desc">Дополнение к живой ленте: структурированный обзор по теме на основе знаний модели (актуальность ограничена, даты сверяйте по adilet). Для самого свежего пользуйтесь живой лентой выше.</div>
+    <input type="text" id="mon-topic" placeholder="напр.: налоговое администрирование, госзакупки, защита персональных данных">
+    <div class="btn-row">
+      <button class="btn ghost" onclick="runMonitor()">🔎 Сформировать обзор</button>
+    </div>
+    <div class="out" id="mon-ai-out"></div>
+  </div>
+</div>
+
+<!-- ───────── АНАЛИЗ ДОГОВОРА ───────── -->
+<div class="page" data-page="analyze">
+  <div class="card">
+    <h2>📑 Анализ договора</h2>
+    <div class="desc">Загрузите договор (.docx, .txt) или вставьте текст. Ассистент вернёт исправленную редакцию с комментариями, юридическим обоснованием правок и перечнем рисков со ссылками на нормы права РК.</div>
+    <div class="tabs" id="an-mode">
+      <button class="active" data-m="risks">Анализ рисков</button>
+      <button data-m="redline">Исправленная редакция</button>
+      <button data-m="both">Полный разбор</button>
+    </div>
+    <label>Чья сторона интересует (для оценки рисков)</label>
+    <select id="an-side">
+      <option>нейтрально / обе стороны</option>
+      <option>Заказчик / Покупатель</option>
+      <option>Исполнитель / Поставщик / Подрядчик</option>
+      <option>Арендатор</option>
+      <option>Арендодатель</option>
+      <option>Кредитор</option>
+      <option>Заёмщик / Должник</option>
+    </select>
+    <div id="an-drop" class="drop">📎 Перетащите файл договора или нажмите для выбора (.docx, .txt)</div>
+    <label>…или вставьте текст договора</label>
+    <textarea id="an-text" placeholder="Вставьте сюда текст договора"></textarea>
+    <label>Особые указания (необязательно)</label>
+    <input type="text" id="an-extra" placeholder="напр.: проверить раздел об ответственности и форс-мажор">
+    <div class="btn-row">
+      <button class="btn" onclick="runAnalyze()">⚖️ Проанализировать</button>
+      <button class="btn ghost" onclick="clearAnalyze()">Очистить</button>
+    </div>
+    <div class="out" id="an-out"></div>
+  </div>
+</div>
+
+<!-- ───────── СРАВНЕНИЕ ───────── -->
+<div class="page" data-page="compare">
+  <div class="card">
+    <h2>🔀 Сравнение редакций договора</h2>
+    <div class="desc">Загрузите или вставьте две редакции договора. Ассистент покажет содержательные различия в виде таблицы, оценит, в чью пользу изменения, и отметит юридически значимые правки. Ниже также доступно текстовое сопоставление.</div>
+    <div class="grid2">
+      <div>
+        <label>Редакция A (исходная)</label>
+        <div id="cmpA-drop" class="drop">📎 Файл редакции A</div>
+        <textarea id="cmpA-text" placeholder="Текст редакции A"></textarea>
+      </div>
+      <div>
+        <label>Редакция B (новая)</label>
+        <div id="cmpB-drop" class="drop">📎 Файл редакции B</div>
+        <textarea id="cmpB-text" placeholder="Текст редакции B"></textarea>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="runCompare()">🔀 Сравнить (юридический анализ)</button>
+      <button class="btn ghost" onclick="runDiff()">📝 Текстовое сопоставление</button>
+    </div>
+    <div class="out" id="cmp-out"></div>
+  </div>
+</div>
+
+<!-- ───────── ТИПОВАЯ ФОРМА ───────── -->
+<div class="page" data-page="template">
+  <div class="card">
+    <h2>🧩 Разработка типовой формы</h2>
+    <div class="desc">Загрузите несколько договоров одного вида — ассистент проанализирует их и составит сбалансированную типовую форму с лучшими формулировками и обязательными условиями по праву РК. Либо сгенерируйте типовую форму с нуля по заданному виду договора.</div>
+    <label>Вид договора</label>
+    <input type="text" id="tpl-kind" placeholder="напр.: договор поставки, оказания услуг, аренды нежилого помещения">
+    <div id="tpl-drop" class="drop">📎 Загрузите образцы договоров (можно несколько: .docx, .txt)</div>
+    <label>Чьи интересы учитывать приоритетно</label>
+    <select id="tpl-side">
+      <option>сбалансированная форма (обе стороны)</option>
+      <option>в пользу нашей компании как Заказчика/Покупателя</option>
+      <option>в пользу нашей компании как Исполнителя/Поставщика</option>
+    </select>
+    <label>Реквизиты компании в преамбулу (необязательно)</label>
+    <select id="tpl-company"></select>
+    <label>Дополнительные требования</label>
+    <input type="text" id="tpl-extra" placeholder="напр.: предусмотреть электронный документооборот, штраф 0,1% за просрочку">
+    <div class="btn-row">
+      <button class="btn" onclick="runTemplate()">🧩 Сформировать типовую форму</button>
+      <button class="btn ghost" onclick="clearTpl()">Очистить</button>
+    </div>
+    <div class="out" id="tpl-out"></div>
+  </div>
+</div>
+
+<!-- ───────── АНАЛИТИКА КЕЙСА ───────── -->
+<div class="page" data-page="case">
+  <div class="card">
+    <h2>⚖️ Аналитика НПА по кейсу</h2>
+    <div class="desc">Опишите юридическую ситуацию. Ассистент подберёт применимые нормы законодательства РК, проанализирует их и подготовит юридическую справку или заключение с выводами и рекомендациями.</div>
+    <div class="tabs" id="case-mode">
+      <button class="active" data-m="spravka">Юридическая справка</button>
+      <button data-m="zaklyuchenie">Правовое заключение</button>
+      <button data-m="strategy">Правовая позиция / стратегия</button>
+    </div>
+    <label>Описание ситуации (фабула)</label>
+    <textarea id="case-facts" placeholder="Изложите факты: кто стороны, что произошло, какие документы есть, в чём вопрос или спор" style="min-height:170px"></textarea>
+    <div class="row">
+      <div>
+        <label>Отрасль права</label>
+        <select id="case-branch">
+          <option>определить автоматически</option>
+          <option>гражданское / договорное</option>
+          <option>трудовое</option>
+          <option>налоговое</option>
+          <option>административное</option>
+          <option>корпоративное</option>
+          <option>госзакупки</option>
+          <option>защита прав потребителей</option>
+          <option>недвижимость / земля</option>
+        </select>
+      </div>
+      <div>
+        <label>Ключевой вопрос</label>
+        <input type="text" id="case-q" placeholder="напр.: правомерен ли отказ и какие риски">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="runCase()">⚖️ Подготовить документ</button>
+      <button class="btn ghost" onclick="document.getElementById('case-facts').value=''">Очистить</button>
+    </div>
+    <div class="out" id="case-out"></div>
+  </div>
+</div>
+
+<!-- ───────── ДОКУМЕНТЫ ───────── -->
+<div class="page" data-page="docs">
+  <div class="card">
+    <h2>📄 Генератор документов</h2>
+    <div class="desc">Сформируйте юридический документ заданной формы по вашим параметрам: акт приёма-передачи, сравнительная таблица, претензия, доверенность, протокол разногласий, дополнительное соглашение и другие.</div>
+    <label>Вид документа</label>
+    <select id="doc-type">
+      <option>Акт приёма-передачи</option>
+      <option>Сравнительная таблица</option>
+      <option>Протокол разногласий</option>
+      <option>Дополнительное соглашение</option>
+      <option>Претензия</option>
+      <option>Письмо-уведомление</option>
+      <option>Доверенность</option>
+      <option>Гарантийное письмо</option>
+      <option>Соглашение о расторжении</option>
+      <option>Иной документ (опишите ниже)</option>
+    </select>
+    <label>Параметры и содержание документа</label>
+    <textarea id="doc-params" placeholder="Опишите всё, что должно быть в документе: стороны, предмет, перечень имущества/позиций, суммы, сроки, основания. Для сравнительной таблицы укажите, что и по каким критериям сравнить."></textarea>
+    <div class="row">
+      <div>
+        <label>Реквизиты компании (наша сторона)</label>
+        <select id="doc-company"></select>
+      </div>
+      <div>
+        <label>Стиль</label>
+        <select id="doc-style">
+          <option>официально-деловой</option>
+          <option>максимально подробный</option>
+          <option>краткий</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="runDoc()">📄 Сформировать документ</button>
+    </div>
+    <div class="out" id="doc-out"></div>
+  </div>
+</div>
+
+<!-- ───────── ШАБЛОНЫ + РЕКВИЗИТЫ ───────── -->
+<div class="page" data-page="company">
+  <div class="card">
+    <h2>🏢 Реквизиты компаний</h2>
+    <div class="desc">Сохраните реквизиты ваших компаний и контрагентов один раз — они будут автоматически подставляться в преамбулу и блок реквизитов формируемых договоров и документов.</div>
+    <div class="row">
+      <div><label>Наименование</label><input type="text" id="co-name" placeholder="ТОО «...»"></div>
+      <div><label>БИН/ИИН</label><input type="text" id="co-bin" placeholder="000000000000"></div>
+    </div>
+    <div class="row">
+      <div><label>В лице (должность, ФИО)</label><input type="text" id="co-rep" placeholder="директора Иванова И.И."></div>
+      <div><label>Действует на основании</label><input type="text" id="co-basis" placeholder="Устава"></div>
+    </div>
+    <label>Юридический адрес</label>
+    <input type="text" id="co-addr" placeholder="010000, г. Астана, ул. ...">
+    <div class="row">
+      <div><label>Банк</label><input type="text" id="co-bank" placeholder="АО «...»"></div>
+      <div><label>IBAN / счёт</label><input type="text" id="co-iban" placeholder="KZ..."></div>
+    </div>
+    <div class="row">
+      <div><label>БИК</label><input type="text" id="co-bik" placeholder="..."></div>
+      <div><label>Кбе / телефон / e-mail</label><input type="text" id="co-misc" placeholder="тел., e-mail"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="saveCompany()">💾 Сохранить компанию</button>
+      <button class="btn ghost" onclick="clearCoForm()">Новая</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Сохранённые компании</h3>
+    <div id="company-list"></div>
+  </div>
+
+  <div class="card">
+    <h2>📁 Шаблоны договоров</h2>
+    <div class="desc">Сгенерируйте готовый договор выбранного вида сразу с реквизитами вашей компании в преамбуле и блоке реквизитов. Сохранённые типовые формы из раздела «Типовая форма» тоже здесь.</div>
+    <label>Вид договора</label>
+    <input type="text" id="ctpl-kind" placeholder="напр.: договор оказания юридических услуг">
+    <div class="row">
+      <div>
+        <label>Наша сторона</label>
+        <select id="ctpl-company"></select>
+      </div>
+      <div>
+        <label>Роль нашей стороны</label>
+        <select id="ctpl-role">
+          <option>Исполнитель / Поставщик / Подрядчик</option>
+          <option>Заказчик / Покупатель</option>
+          <option>Арендодатель</option>
+          <option>Арендатор</option>
+        </select>
+      </div>
+    </div>
+    <label>Дополнительные условия</label>
+    <input type="text" id="ctpl-extra" placeholder="напр.: предоплата 50%, срок 30 дней, конфиденциальность">
+    <div class="btn-row">
+      <button class="btn gold" onclick="runContractTemplate()">📁 Сгенерировать договор с реквизитами</button>
+    </div>
+    <div class="out" id="ctpl-out"></div>
+  </div>
+</div>
+
+<!-- ───────── НАСТРОЙКИ ───────── -->
+<div class="page" data-page="settings">
+  <div class="card">
+    <h2>⚙️ Настройки</h2>
+    <div class="desc">Для аналитических функций используется API Anthropic (Claude). Ключ хранится только в этом браузере (localStorage) и отправляется напрямую в Anthropic.</div>
+    <label>API-ключ Anthropic</label>
+    <input type="password" id="set-key" placeholder="sk-ant-...">
+    <div class="hint">Получить ключ: console.anthropic.com → API Keys. Запросы идут с заголовком прямого браузерного доступа.</div>
+    <label>Модель</label>
+    <select id="set-model">
+      <option value="claude-opus-4-8">Claude Opus 4.8 — максимальная аналитика (рекомендуется для договоров и кейсов)</option>
+      <option value="claude-sonnet-4-6">Claude Sonnet 4.6 — баланс скорости и качества</option>
+      <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 — быстро и экономно</option>
+    </select>
+    <div class="btn-row">
+      <button class="btn" onclick="saveSettings()">💾 Сохранить</button>
+      <button class="btn ghost" onclick="testKey()">🔌 Проверить ключ</button>
+    </div>
+    <div id="set-status" class="hint"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">💻 Работа на нескольких устройствах</h3>
+    <div class="desc">Данные (реквизиты компаний, отслеживаемые темы, история анализов) хранятся <b>только на этом устройстве</b> — ничего не уходит в интернет. Это сделано ради конфиденциальности договоров и кейсов. Чтобы перенести данные на рабочий/домашний ноутбук:</div>
+    <ol style="font-size:12.5px;color:var(--muted);margin:0 0 12px 20px;line-height:1.7">
+      <li>На текущем устройстве нажмите <b>«Экспорт»</b> — скачается файл <code>lawai-data-….json</code>.</li>
+      <li>Перенесите файл (флешка, почта себе, облачный диск) на другое устройство.</li>
+      <li>Там откройте приложение и нажмите <b>«Импорт»</b>, выберите файл.</li>
+    </ol>
+    <div class="warnbox" style="margin-bottom:12px">🔑 API‑ключ намеренно <b>не</b> попадает в файл экспорта — вводите его один раз в настройках на каждом устройстве (это безопаснее).</div>
+    <div class="btn-row">
+      <button class="btn" onclick="exportData()">⬇️ Экспорт данных</button>
+      <button class="btn ghost" onclick="document.getElementById('imp').click()">⬆️ Импорт данных</button>
+      <input type="file" id="imp" style="display:none" accept=".json" onchange="importData(this)">
+      <button class="btn ghost sm" onclick="clearHistory()">🗑 Очистить историю</button>
+    </div>
+    <div class="hint">Открыть приложение с любого устройства можно по ссылке (GitHub Pages) — там работают все ИИ‑разделы; живая лента adilet — только при локальном запуске через <code>serve.ps1</code>.</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════ STATE ═══════════════ */
+const LS = {
+  key:'lawai_key', model:'lawai_model', companies:'lawai_companies',
+  watch:'lawai_watch', hist:'lawai_hist'
+};
+let state = {
+  key: localStorage.getItem(LS.key) || '',
+  model: localStorage.getItem(LS.model) || 'claude-opus-4-8',
+  companies: JSON.parse(localStorage.getItem(LS.companies)||'[]'),
+  watch: JSON.parse(localStorage.getItem(LS.watch)||'[]'),
+  hist: JSON.parse(localStorage.getItem(LS.hist)||'[]'),
+};
+function save(k,v){ localStorage.setItem(LS[k], typeof v==='string'?v:JSON.stringify(v)); }
+
+/* ═══════════════ NAV ═══════════════ */
+const PAGES = [
+  ['home','🏠','Главная'],['monitor','📋','Мониторинг'],['analyze','📑','Анализ договора'],
+  ['compare','🔀','Сравнение'],['template','🧩','Типовая форма'],['case','⚖️','Аналитика кейса'],
+  ['docs','📄','Документы'],['company','🏢','Реквизиты'],['settings','⚙️','Настройки']
+];
+const nav = document.getElementById('nav');
+PAGES.forEach(([id,ic,t],i)=>{
+  const b=document.createElement('button');
+  b.innerHTML = ic+' '+t; b.dataset.go=id; if(i===0)b.classList.add('active');
+  b.onclick=()=>goto(id); nav.appendChild(b);
+});
+let feedLoaded=false;
+function goto(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.dataset.page===id));
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.go===id));
+  window.scrollTo(0,0);
+  if(id==='monitor'&&!feedLoaded){feedLoaded=true;loadFeed();}
+}
+const HOME_FEATS=[
+  ['monitor','📋','Мониторинг законодательства','Живая лента НПА РК с adilet.zan.kz'],
+  ['analyze','📑','Анализ договора','Правки, комментарии и риски с обоснованием'],
+  ['compare','🔀','Сравнение редакций','Что изменилось между двумя версиями'],
+  ['template','🧩','Типовая форма','Единая форма на основе нескольких договоров'],
+  ['case','⚖️','Аналитика по кейсу','Справка или заключение по ситуации'],
+  ['docs','📄','Генератор документов','Акт, таблица, претензия и другое'],
+  ['company','🏢','Шаблоны и реквизиты','Договоры с реквизитами вашей компании'],
+  ['settings','⚙️','Настройки','API-ключ и модель'],
+];
+document.getElementById('home-feats').innerHTML = HOME_FEATS.map(([g,ic,t,d])=>
+  `<div class="feat" onclick="goto('${g}')"><div class="ic">${ic}</div><div><div class="ft">${t}</div><div class="fd">${d}</div></div></div>`).join('');
+
+/* ═══════════════ UI HELPERS ═══════════════ */
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+function setKeyDot(){
+  const d=document.getElementById('key-dot'), l=document.getElementById('key-label');
+  if(state.key){d.className='ok';l.textContent='ключ задан';}else{d.className='';l.textContent='ключ не задан';}
+}
+
+/* render output panel; returns body element for streaming */
+function outPanel(elId, title){
+  const el=document.getElementById(elId);
+  el.classList.add('show');
+  el.innerHTML = `<div class="out-head"><span class="spin"></span><b>${esc(title)}</b><span class="spacer"></span>
+    <button class="btn ghost sm" data-copy>⧉ Копировать</button>
+    <button class="btn ghost sm" data-word>⬇ Word</button></div>
+    <div class="out-body"><div class="md"></div></div>`;
+  const body=el.querySelector('.md');
+  let raw='';
+  el.querySelector('[data-copy]').onclick=()=>{navigator.clipboard.writeText(raw);toast('Скопировано');};
+  el.querySelector('[data-word]').onclick=()=>downloadWord(title, body.innerHTML);
+  return {
+    el,
+    append(t){ raw+=t; body.innerHTML=marked.parse(raw); el.querySelector('.out-body').scrollTop=el.querySelector('.out-body').scrollHeight; },
+    set(t){ raw=t; body.innerHTML=marked.parse(raw); },
+    done(){ el.querySelector('.spin').remove(); return raw; },
+    error(m){ el.querySelector('.spin')?.remove(); body.innerHTML=`<p style="color:var(--risk)">⚠️ ${esc(m)}</p>`; },
+    get raw(){return raw;}
+  };
+}
+
+/* ═══════════════ ANTHROPIC API (streaming) ═══════════════ */
+async function callAI(system, userText, panel, maxTokens=8000){
+  if(!state.key){ panel.error('Не задан API-ключ. Откройте «Настройки».'); goto('settings'); return null; }
+  try{
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        'x-api-key':state.key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:state.model, max_tokens:maxTokens, stream:true,
+        system, messages:[{role:'user',content:userText}]
+      })
+    });
+    if(!resp.ok){
+      let m='HTTP '+resp.status; try{const j=await resp.json();m=j.error?.message||m;}catch{}
+      panel.error('Ошибка API: '+m); return null;
+    }
+    const reader=resp.body.getReader(), dec=new TextDecoder(); let buf='';
+    while(true){
+      const {done,value}=await reader.read(); if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      const lines=buf.split('\n'); buf=lines.pop();
+      for(const line of lines){
+        if(!line.startsWith('data:'))continue;
+        const data=line.slice(5).trim(); if(!data||data==='[DONE]')continue;
+        try{
+          const ev=JSON.parse(data);
+          if(ev.type==='content_block_delta'&&ev.delta?.text) panel.append(ev.delta.text);
+        }catch{}
+      }
+    }
+    const full=panel.done();
+    return full;
+  }catch(e){ panel.error('Сбой запроса: '+e.message); return null; }
+}
+
+/* ═══════════════ SYSTEM PROMPTS ═══════════════ */
+const BASE = `Ты — опытный юрист-консультант, специализирующийся на праве Республики Казахстан. Отвечай на русском языке, профессионально и по существу.
+Опирайся на законодательство РК: Гражданский кодекс РК, Трудовой, Налоговый, Предпринимательский, Административный, КоАП РК и профильные законы. При ссылке на нормы указывай акт и статью (например, «ст. 401 ГК РК»).
+ВАЖНО: если не уверен в точной редакции, номере статьи или действующей дате — прямо отметь это и порекомендуй сверить по adilet.zan.kz / ИС «Параграф». Не выдумывай номера статей и реквизиты актов. Форматируй ответ в Markdown (заголовки, таблицы, списки).`;
+
+/* ═══════════════ FILE UPLOAD ═══════════════ */
+async function extractFile(file){
+  const name=file.name.toLowerCase();
+  if(name.endsWith('.docx')){
+    const buf=await file.arrayBuffer();
+    const r=await mammoth.extractRawText({arrayBuffer:buf});
+    return r.value;
+  }
+  return await file.text();
+}
+function setupDrop(dropId, onText, multi=false){
+  const drop=document.getElementById(dropId);
+  const inp=document.createElement('input'); inp.type='file'; inp.style.display='none';
+  inp.accept='.docx,.txt,.md'; inp.multiple=multi; document.body.appendChild(inp);
+  drop.dataset.files='[]';
+  function render(files){
+    const base=drop.dataset.base||drop.innerHTML.split('<div class="files">')[0];
+    drop.dataset.base=base;
+    if(!files.length){drop.innerHTML=base;return;}
+    drop.innerHTML=base+`<div class="files">${files.map((f,i)=>`<span class="fileitem">📄 <b>${esc(f.name)}</b> <span data-rm="${i}">✕</span></span>`).join('')}</div>`;
+    drop.querySelectorAll('[data-rm]').forEach(s=>s.onclick=(e)=>{e.stopPropagation();const arr=JSON.parse(drop.dataset.files);arr.splice(+s.dataset.rm,1);drop.dataset.files=JSON.stringify(arr);render(arr);onText(arr);});
+  }
+  async function handle(fileList){
+    const arr=multi?JSON.parse(drop.dataset.files):[];
+    for(const f of fileList){
+      try{const text=await extractFile(f); arr.push({name:f.name,text});}
+      catch(e){toast('Не удалось прочитать '+f.name);}
+    }
+    drop.dataset.files=JSON.stringify(arr); render(arr); onText(arr);
+  }
+  drop.onclick=()=>inp.click();
+  inp.onchange=()=>handle(inp.files);
+  drop.ondragover=e=>{e.preventDefault();drop.classList.add('over');};
+  drop.ondragleave=()=>drop.classList.remove('over');
+  drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');handle(e.dataTransfer.files);};
+  drop._get=()=>JSON.parse(drop.dataset.files);
+}
+
+/* ═══════════════ WORD EXPORT ═══════════════ */
+function downloadWord(title, html){
+  const doc=`<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+  <head><meta charset='utf-8'><style>
+  body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.4}
+  h1{font-size:16pt}h2{font-size:14pt}h3{font-size:12pt}
+  table{border-collapse:collapse;width:100%}td,th{border:1px solid #000;padding:5px}
+  th{background:#eee}del{color:#c00}ins{color:#080;text-decoration:none}
+  </style></head><body>${html}</body></html>`;
+  const blob=new Blob(['﻿'+doc],{type:'application/msword'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=(title||'документ').replace(/[^\wа-яё \-]/gi,'').slice(0,60)+'.doc';
+  a.click(); toast('Файл Word скачан');
+}
+
+/* ═══════════════ HISTORY ═══════════════ */
+function pushHist(type, title, content){
+  state.hist.unshift({type,title,content,ts:Date.now()});
+  state.hist=state.hist.slice(0,30); save('hist',state.hist); renderHistory();
+}
+function renderHistory(){
+  const el=document.getElementById('home-history');
+  if(!state.hist.length){el.innerHTML='<div class="empty">Здесь появятся ваши обзоры, анализы и документы.</div>';return;}
+  el.innerHTML=state.hist.map((h,i)=>`<div class="listitem">
+    <div class="t">${esc(h.title)}</div>
+    <div class="m">${h.type} · ${new Date(h.ts).toLocaleString('ru-RU')}</div>
+    <div class="acts">
+      <button class="btn ghost sm" onclick="viewHist(${i})">Открыть</button>
+      <button class="btn ghost sm" onclick="delHist(${i})">Удалить</button>
+    </div></div>`).join('');
+}
+function viewHist(i){
+  const h=state.hist[i];
+  let v=document.getElementById('hist-view');
+  if(!v){v=document.createElement('div');v.id='hist-view';v.className='out show';document.querySelector('[data-page="home"]').appendChild(v);}
+  v.innerHTML=`<div class="out-head"><b>${esc(h.title)}</b><span class="spacer"></span>
+    <button class="btn ghost sm" onclick="downloadWord('${esc(h.title)}',document.getElementById('hv-body').innerHTML)">⬇ Word</button>
+    <button class="btn ghost sm" onclick="document.getElementById('hist-view').remove()">✕</button></div>
+    <div class="out-body" id="hv-body">${marked.parse(h.content)}</div>`;
+  v.scrollIntoView({behavior:'smooth'});
+}
+function delHist(i){state.hist.splice(i,1);save('hist',state.hist);renderHistory();}
+function clearHistory(){if(confirm('Очистить всю историю?')){state.hist=[];save('hist',[]);renderHistory();toast('История очищена');}}
+
+/* ═══════════════ LIVE FEED (adilet.zan.kz via local proxy) ═══════════════ */
+let FEED=[];          // распарсенные элементы ленты
+let proxyOK=null;     // доступен ли локальный прокси
+
+async function proxyFetch(url){
+  const r=await fetch('/api/fetch?url='+encodeURIComponent(url));
+  if(!r.ok) throw new Error('proxy '+r.status+': '+(await r.text().catch(()=>'')) );
+  return await r.text();
+}
+function actType(desc,link){
+  const d=(desc||'')+' '+(link||'');
+  if(/Кодекс/i.test(d))return['Кодекс','risk'];
+  if(/Конституц/i.test(d))return['Конституция','risk'];
+  if(/Закон/i.test(d))return['Закон','warn'];
+  if(/Указ/i.test(d))return['Указ',''];
+  if(/Постановлени/i.test(d))return['Постановление',''];
+  if(/Приказ/i.test(d))return['Приказ',''];
+  if(/Решени/i.test(d))return['Решение',''];
+  if(/Распоряжени/i.test(d))return['Распоряжение',''];
+  return['НПА',''];
+}
+async function loadFeed(){
+  const lang=document.getElementById('feed-lang').value;
+  const st=document.getElementById('feed-status');
+  st.textContent='Загружаю ленту adilet.zan.kz…';
+  try{
+    const xmlText=await proxyFetch('https://adilet.zan.kz/'+lang+'/docs/rss');
+    proxyOK=true; document.getElementById('proxy-warn').style.display='none';
+    const xml=new DOMParser().parseFromString(xmlText,'application/xml');
+    if(xml.querySelector('parsererror')) throw new Error('не удалось разобрать ленту');
+    FEED=[...xml.querySelectorAll('item')].map(it=>{
+      const g=t=>it.querySelector(t)?.textContent?.trim()||'';
+      const desc=g('description'), link=g('link');
+      return {title:g('title'), link, desc, date:g('pubDate'), type:actType(desc,link)};
+    });
+    st.innerHTML=`Загружено актов: <b>${FEED.length}</b>. Источник: adilet.zan.kz · обновлено ${new Date().toLocaleString('ru-RU')}`;
+    renderFeed();
+  }catch(e){
+    proxyOK=false;
+    if(/Failed to fetch|NetworkError|proxy/i.test(e.message)){
+      document.getElementById('proxy-warn').style.display='block';
+      st.innerHTML='<span style="color:var(--risk)">Лента недоступна. Нужен запуск через serve.ps1 (см. предупреждение выше).</span>';
+    } else st.innerHTML='<span style="color:var(--risk)">Ошибка: '+esc(e.message)+'</span>';
+    document.getElementById('feed-list').innerHTML='';
+  }
+}
+function filteredFeed(){
+  const kws=document.getElementById('feed-filter').value.toLowerCase().split(',').map(s=>s.trim()).filter(Boolean);
+  if(!kws.length)return FEED;
+  return FEED.filter(it=>{const hay=(it.title+' '+it.desc).toLowerCase();return kws.some(k=>hay.includes(k));});
+}
+function renderFeed(){
+  const list=document.getElementById('feed-list');
+  if(!FEED.length){list.innerHTML='';return;}
+  const items=filteredFeed();
+  if(!items.length){list.innerHTML='<div class="empty">Под фильтр ничего не попало. Измените ключевые слова или очистите фильтр.</div>';return;}
+  list.innerHTML=items.map((it)=>{
+    const gi=FEED.indexOf(it);
+    const d=it.date?new Date(it.date):null;
+    const ds=d&&!isNaN(d)?d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short',year:'numeric'}):'';
+    return `<div class="listitem">
+      <div class="t"><span class="pill ${it.type[1]}">${it.type[0]}</span> ${esc(it.title)}</div>
+      <div class="m">${esc(it.desc)}${ds?' · <b>изм.: '+ds+'</b>':''}</div>
+      <div class="acts">
+        <button class="btn ghost sm" onclick="window.open('${it.link}','_blank')">↗ Открыть на adilet</button>
+        <button class="btn ghost sm" onclick="analyzeAct(${gi})">🔍 Разбор изменений</button>
+      </div></div>`;
+  }).join('');
+}
+/* разбор конкретного акта по реальному тексту с adilet */
+async function analyzeAct(i){
+  const it=FEED[i];
+  const p=outPanel('mon-out','Разбор: '+it.title);
+  p.set('_Загружаю текст документа с adilet.zan.kz…_');
+  let text='';
+  try{
+    const html=await proxyFetch(it.link);
+    const doc=new DOMParser().parseFromString(html,'text/html');
+    doc.querySelectorAll('script,style,nav,header,footer,noscript').forEach(e=>e.remove());
+    const cont=doc.querySelector('#document,#docContent,.document,#content,main,article')||doc.body;
+    text=(cont.textContent||'').replace(/\s+/g,' ').trim().slice(0,18000);
+  }catch(e){ text=''; }
+  p.set('');
+  const sys=BASE+`\nЗадача: разобрать конкретный нормативный акт РК для практикующего юриста.`;
+  const u=`Разбери нормативный правовой акт РК.\nНазвание: ${it.title}\nОписание: ${it.desc}\nИсточник: ${it.link}\n\n`+
+    (text?`Текст документа (фрагмент, может быть усечён):\n"""${text}"""\n\n`:`(Полный текст загрузить не удалось — опирайся на название/описание и общие знания, отметь это.)\n\n`)+
+    `Дай:\n1. **Суть** акта в 2–4 предложениях.\n2. **Что именно меняется** (если это акт о внесении изменений) — по пунктам.\n3. **Кого затрагивает** и практические последствия.\n4. **Сроки/вступление в силу**, если указаны.\n5. **Рекомендации** юристу/бизнесу.\nЕсли текст усечён или чего-то не видно — честно отметь и предложи свериться по ссылке.`;
+  const full=await callAI(sys,u,p,5000);
+  if(full)pushHist('Разбор НПА',it.title,full+'\n\n---\n[Источник на adilet]('+it.link+')');
+}
+/* ИИ-сводка по показанным элементам ленты */
+async function aiFeedSummary(){
+  const items=filteredFeed();
+  if(!items.length){toast('Сначала обновите ленту');return;}
+  const flt=document.getElementById('feed-filter').value.trim();
+  const p=outPanel('mon-out','ИИ-сводка ленты'+(flt?' · '+flt:''));
+  const listText=items.slice(0,60).map((it,i)=>`${i+1}. [${it.type[0]}] ${it.title} — ${it.desc} (${it.date})`).join('\n');
+  const sys=BASE+`\nЗадача: проанализировать перечень недавно изменённых/опубликованных НПА РК из официальной ленты adilet.zan.kz.`;
+  const u=`Ниже — реальные акты из официальной ленты adilet.zan.kz${flt?' (отфильтровано по: «'+flt+'»)':''}, отсортированные по дате последнего изменения.\n\n${listText}\n\nСделай:\n1. **Главное** — 3–6 самых значимых для практики актов с пояснением почему.\n2. **Таблица**: Акт | Тип | Суть/что меняется | На что обратить внимание.\n3. **Вывод и рекомендации**.\nОпирайся только на эти данные; где нужно уточнение полного текста — отметь и сошлись на adilet.`;
+  const full=await callAI(sys,u,p,6000);
+  if(full)pushHist('Сводка ленты','Сводка НПА'+(flt?': '+flt:''),full);
+}
+
+/* ═══════════════ ТЕМАТИЧЕСКИЙ ИИ-ОБЗОР ═══════════════ */
+async function runMonitor(){
+  const topic=document.getElementById('mon-topic').value.trim();
+  if(!topic){toast('Укажите тему');return;}
+  const p=outPanel('mon-ai-out','Обзор изменений: '+topic);
+  const sys=BASE+`\nЗадача: подготовить структурированный обзор изменений законодательства РК.`;
+  const u=`Подготовь обзор изменений в законодательстве Республики Казахстан по теме: «${topic}».
+Структура ответа:
+1. **Краткое резюме** — главное в 3–5 пунктах.
+2. **Таблица изменений**: столбцы — Акт/норма | Что меняется | Дата/статус вступления | Влияние/что делать.
+3. **Риски и рекомендации** для практики.
+4. **Что проверить вручную** — перечень актов и пунктов для сверки на adilet.zan.kz.
+ВАЖНО: это обзор на основе твоих знаний; явно предупреди, что самые свежие изменения нужно сверить в живой ленте adilet и не выдумывай номера/даты.`;
+  const full=await callAI(sys,u,p,6000);
+  if(full)pushHist('Мониторинг','Обзор: '+topic,full);
+}
+
+/* ═══════════════ ОТСЛЕЖИВАЕМЫЕ ФИЛЬТРЫ ═══════════════ */
+function addWatch(){
+  const topic=document.getElementById('feed-filter').value.trim()||document.getElementById('mon-topic').value.trim();
+  if(!topic){toast('Введите ключевые слова в фильтр');return;}
+  if(state.watch.some(w=>w.topic===topic)){toast('Уже в списке');return;}
+  state.watch.unshift({topic,ts:Date.now()}); save('watch',state.watch); renderWatch(); toast('Фильтр сохранён');
+}
+function renderWatch(){
+  const el=document.getElementById('watchlist');
+  if(!state.watch.length){el.innerHTML='<div class="empty">Нет отслеживаемых тем. Введите ключевые слова в фильтр ленты и нажмите «★ Сохранить фильтр».</div>';return;}
+  el.innerHTML=state.watch.map((w,i)=>`<div class="listitem">
+    <div class="t">★ ${esc(w.topic)}</div>
+    <div class="m">добавлено ${new Date(w.ts).toLocaleDateString('ru-RU')}</div>
+    <div class="acts">
+      <button class="btn ghost sm" onclick="checkWatch(${i})">🔎 Проверить в ленте</button>
+      <button class="btn ghost sm" onclick="delWatch(${i})">Удалить</button>
+    </div></div>`).join('');
+}
+function delWatch(i){state.watch.splice(i,1);save('watch',state.watch);renderWatch();}
+function checkWatch(i){document.getElementById('feed-filter').value=state.watch[i].topic;goto('monitor');loadFeed();}
+
+/* ═══════════════ ANALYZE ═══════════════ */
+let anMode='risks';
+document.querySelectorAll('#an-mode button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#an-mode button').forEach(x=>x.classList.remove('active'));b.classList.add('active');anMode=b.dataset.m;});
+function getAnalyzeText(){
+  const f=document.getElementById('an-drop')._get();
+  if(f.length)return f.map(x=>x.text).join('\n\n');
+  return document.getElementById('an-text').value.trim();
+}
+async function runAnalyze(){
+  const text=getAnalyzeText();
+  if(!text){toast('Загрузите файл или вставьте текст договора');return;}
+  const side=document.getElementById('an-side').value, extra=document.getElementById('an-extra').value.trim();
+  const p=outPanel('an-out','Анализ договора');
+  let task='';
+  if(anMode==='risks') task=`Проведи юридический анализ рисков. Дай: 1) общую оценку договора; 2) **таблицу рисков** (столбцы: Пункт договора | Суть риска | Степень: высокий/средний/низкий | Норма права РК | Рекомендация); 3) недостающие важные условия; 4) итоговые выводы.`;
+  else if(anMode==='redline') task=`Верни **исправленную редакцию договора**. Спорные/опасные формулировки замени на корректные. Прямо в тексте после изменённых пунктов вставляй пометку в формате: «> 💬 Комментарий: <что и почему изменено, со ссылкой на норму права РК>». Сохрани структуру и нумерацию.`;
+  else task=`Сделай полный разбор: 1) общая оценка; 2) **таблица рисков и правок** (Пункт | Проблема | Рекомендуемая формулировка | Обоснование со ссылкой на НПА РК); 3) **исправленная редакция договора** с комментариями «> 💬 Комментарий: …»; 4) недостающие условия; 5) выводы.`;
+  const sys=BASE+`\nЗадача: анализ договора с позиции стороны «${side}».`;
+  const u=`Проанализируй договор. Интересующая сторона: ${side}.${extra?'\nОсобые указания: '+extra:''}\n\n${task}\n\n=== ТЕКСТ ДОГОВОРА ===\n${text}`;
+  const full=await callAI(sys,u,p,8000);
+  if(full)pushHist('Анализ договора','Анализ договора ('+side+')',full);
+}
+function clearAnalyze(){document.getElementById('an-text').value='';document.getElementById('an-extra').value='';document.getElementById('an-out').classList.remove('show');}
+
+/* ═══════════════ COMPARE ═══════════════ */
+function getCmp(id){const f=document.getElementById(id+'-drop')._get();return f.length?f.map(x=>x.text).join('\n\n'):document.getElementById(id+'-text').value.trim();}
+async function runCompare(){
+  const a=getCmp('cmpA'), b=getCmp('cmpB');
+  if(!a||!b){toast('Загрузите обе редакции');return;}
+  const p=outPanel('cmp-out','Сравнение редакций');
+  const sys=BASE+`\nЗадача: сравнить две редакции договора и оценить значимость изменений.`;
+  const u=`Сравни две редакции договора. Дай:
+1. **Резюме** — сколько и каких изменений, общий вывод в чью пользу сдвиг.
+2. **Таблица различий**: Пункт | Было (ред. A) | Стало (ред. B) | Юридическое значение | В чью пользу (Сторона A/B/нейтрально) | Риск.
+3. **Ключевые правки**, требующие особого внимания.
+4. **Рекомендации** перед подписанием ред. B.
+\n=== РЕДАКЦИЯ A ===\n${a}\n\n=== РЕДАКЦИЯ B ===\n${b}`;
+  const full=await callAI(sys,u,p,8000);
+  if(full)pushHist('Сравнение','Сравнение редакций договора',full);
+}
+function runDiff(){
+  const a=getCmp('cmpA'), b=getCmp('cmpB');
+  if(!a||!b){toast('Загрузите обе редакции');return;}
+  const p=outPanel('cmp-out','Текстовое сопоставление');
+  const html=diffWords(a,b);
+  p.set('### Текстовое сопоставление\n\n<span class="pill ok">зелёным</span> — добавлено в редакции B, <del>зачёркнутым</del> — удалено из A.\n\n'+html);
+  p.done();
+}
+/* simple word-level diff (LCS) */
+function diffWords(a,b){
+  const A=a.split(/(\s+)/), B=b.split(/(\s+)/);
+  const n=A.length,m=B.length;
+  const dp=Array.from({length:n+1},()=>new Int32Array(m+1));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)dp[i][j]=A[i]===B[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);
+  let i=0,j=0,out='';
+  while(i<n&&j<m){
+    if(A[i]===B[j]){out+=esc(A[i]);i++;j++;}
+    else if(dp[i+1][j]>=dp[i][j+1]){out+=A[i].trim()?`<del>${esc(A[i])}</del>`:esc(A[i]);i++;}
+    else{out+=B[j].trim()?`<ins>${esc(B[j])}</ins>`:esc(B[j]);j++;}
+  }
+  while(i<n){out+=A[i].trim()?`<del>${esc(A[i])}</del>`:esc(A[i]);i++;}
+  while(j<m){out+=B[j].trim()?`<ins>${esc(B[j])}</ins>`:esc(B[j]);j++;}
+  return '<div style="white-space:pre-wrap;font-size:12.5px;line-height:1.7">'+out+'</div>';
+}
+
+/* ═══════════════ TEMPLATE ═══════════════ */
+async function runTemplate(){
+  const kind=document.getElementById('tpl-kind').value.trim();
+  const files=document.getElementById('tpl-drop')._get();
+  if(!kind&&!files.length){toast('Укажите вид договора или загрузите образцы');return;}
+  const side=document.getElementById('tpl-side').value, extra=document.getElementById('tpl-extra').value.trim();
+  const coId=document.getElementById('tpl-company').value;
+  const co=state.companies.find(c=>c.id==coId);
+  const p=outPanel('tpl-out','Типовая форма: '+(kind||'договор'));
+  const sys=BASE+`\nЗадача: разработать готовую к использованию типовую форму договора по праву РК.`;
+  let u=`Разработай **типовую форму** договора${kind?' вида: «'+kind+'»':''}. Приоритет интересов: ${side}.`;
+  if(files.length){u+=`\n\nНиже ${files.length} образец(ов) договоров — проанализируй их, возьми лучшие и наиболее защищённые формулировки, устрани слабые места, и составь единую сбалансированную форму:\n\n`+files.map((f,i)=>`=== ОБРАЗЕЦ ${i+1}: ${f.name} ===\n${f.text}`).join('\n\n');}
+  if(co)u+=`\n\nВ преамбулу и блок «Реквизиты сторон» подставь реквизиты нашей стороны:\n${coBlock(co)}\nВторую сторону оставь шаблонными полями «____».`;
+  if(extra)u+=`\n\nДополнительные требования: ${extra}`;
+  u+=`\n\nВыдай полный готовый текст договора со всеми существенными условиями, нумерацией разделов, реквизитами и местами для подписей. В конце добавь раздел «📌 Примечания юриста» — на что обратить внимание при использовании формы.`;
+  const full=await callAI(sys,u,p,8000);
+  if(full)pushHist('Типовая форма','Типовая форма: '+(kind||'договор'),full);
+}
+function clearTpl(){document.getElementById('tpl-kind').value='';document.getElementById('tpl-extra').value='';document.getElementById('tpl-out').classList.remove('show');}
+
+/* ═══════════════ CASE ═══════════════ */
+let caseMode='spravka';
+document.querySelectorAll('#case-mode button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#case-mode button').forEach(x=>x.classList.remove('active'));b.classList.add('active');caseMode=b.dataset.m;});
+async function runCase(){
+  const facts=document.getElementById('case-facts').value.trim();
+  if(!facts){toast('Опишите ситуацию');return;}
+  const branch=document.getElementById('case-branch').value, q=document.getElementById('case-q').value.trim();
+  const titles={spravka:'Юридическая справка',zaklyuchenie:'Правовое заключение',strategy:'Правовая позиция'};
+  const p=outPanel('case-out',titles[caseMode]);
+  let struct='';
+  if(caseMode==='spravka') struct=`Подготовь **юридическую справку**: 1) Обстоятельства дела; 2) Применимые нормы права РК (со ссылками на статьи); 3) Правовой анализ; 4) Выводы; 5) Рекомендации.`;
+  else if(caseMode==='zaklyuchenie') struct=`Подготовь **правовое заключение** по форме: 1) Вводная часть (вопрос, представленные сведения); 2) Применимое законодательство РК; 3) Мотивировочная часть (подробный анализ); 4) Оценка рисков; 5) Заключение (чёткие ответы на вопросы); 6) Рекомендации. Тон — официальный.`;
+  else struct=`Разработай **правовую позицию/стратегию**: 1) Краткая оценка перспектив; 2) Применимые нормы РК; 3) Аргументы «за» нашу позицию и контраргументы оппонента; 4) Доказательства, которые нужно собрать; 5) Пошаговый план действий и сроки; 6) Риски.`;
+  const sys=BASE+`\nЗадача: ${titles[caseMode]} по конкретному кейсу.`;
+  const u=`Отрасль права: ${branch}.${q?'\nКлючевой вопрос: '+q:''}\n\nФабула:\n${facts}\n\n${struct}\nГде есть неопределённость в нормах — отметь и порекомендуй сверку по adilet.zan.kz.`;
+  const full=await callAI(sys,u,p,8000);
+  if(full)pushHist('Кейс',titles[caseMode],full);
+}
+
+/* ═══════════════ DOCS ═══════════════ */
+async function runDoc(){
+  const type=document.getElementById('doc-type').value;
+  const params=document.getElementById('doc-params').value.trim();
+  if(!params){toast('Опишите параметры документа');return;}
+  const coId=document.getElementById('doc-company').value, co=state.companies.find(c=>c.id==coId);
+  const style=document.getElementById('doc-style').value;
+  const p=outPanel('doc-out',type);
+  const sys=BASE+`\nЗадача: сформировать юридический документ «${type}» по праву РК, готовый к печати.`;
+  let u=`Сформируй документ: **${type}**. Стиль: ${style}.\nПараметры и содержание:\n${params}`;
+  if(co)u+=`\n\nРеквизиты нашей стороны:\n${coBlock(co)}`;
+  u+=`\n\nВыдай готовый документ: заголовок, дата и место, тело документа, реквизиты сторон, места для подписей. ${type==='Сравнительная таблица'?'Оформи в виде таблицы Markdown.':''} Незаполненные данные обозначь «____».`;
+  const full=await callAI(sys,u,p,7000);
+  if(full)pushHist('Документ',type,full);
+}
+
+/* ═══════════════ COMPANIES ═══════════════ */
+function coBlock(c){
+  return `Наименование: ${c.name||'—'}; БИН/ИИН: ${c.bin||'—'}; в лице ${c.rep||'—'}, действующего на основании ${c.basis||'—'}; адрес: ${c.addr||'—'}; банк: ${c.bank||'—'}, IBAN ${c.iban||'—'}, БИК ${c.bik||'—'}; ${c.misc||''}`;
+}
+let editCo=null;
+function saveCompany(){
+  const c={
+    id: editCo||Date.now(),
+    name:val('co-name'),bin:val('co-bin'),rep:val('co-rep'),basis:val('co-basis'),
+    addr:val('co-addr'),bank:val('co-bank'),iban:val('co-iban'),bik:val('co-bik'),misc:val('co-misc')
+  };
+  if(!c.name){toast('Укажите наименование');return;}
+  if(editCo){const i=state.companies.findIndex(x=>x.id==editCo);state.companies[i]=c;}
+  else state.companies.unshift(c);
+  save('companies',state.companies); editCo=null; clearCoForm(); renderCompanies(); fillCompanySelects(); toast('Компания сохранена');
+}
+function val(id){return document.getElementById(id).value.trim();}
+function clearCoForm(){['co-name','co-bin','co-rep','co-basis','co-addr','co-bank','co-iban','co-bik','co-misc'].forEach(i=>document.getElementById(i).value='');editCo=null;}
+function loadCo(id){const c=state.companies.find(x=>x.id==id);editCo=id;
+  set('co-name',c.name);set('co-bin',c.bin);set('co-rep',c.rep);set('co-basis',c.basis);set('co-addr',c.addr);set('co-bank',c.bank);set('co-iban',c.iban);set('co-bik',c.bik);set('co-misc',c.misc);
+  goto('company');window.scrollTo(0,0);toast('Редактирование — измените и сохраните');}
+function set(id,v){document.getElementById(id).value=v||'';}
+function delCo(id){if(confirm('Удалить компанию?')){state.companies=state.companies.filter(x=>x.id!=id);save('companies',state.companies);renderCompanies();fillCompanySelects();}}
+function renderCompanies(){
+  const el=document.getElementById('company-list');
+  if(!state.companies.length){el.innerHTML='<div class="empty">Пока нет сохранённых компаний.</div>';return;}
+  el.innerHTML=state.companies.map(c=>`<div class="listitem">
+    <div class="t">🏢 ${esc(c.name)}</div>
+    <div class="m">БИН ${esc(c.bin||'—')} · ${esc(c.addr||'')}</div>
+    <div class="acts"><button class="btn ghost sm" onclick="loadCo(${c.id})">Изменить</button>
+    <button class="btn ghost sm" onclick="delCo(${c.id})">Удалить</button></div></div>`).join('');
+}
+function fillCompanySelects(){
+  const opts='<option value="">— без реквизитов —</option>'+state.companies.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  ['tpl-company','doc-company','ctpl-company'].forEach(id=>{const s=document.getElementById(id);if(s)s.innerHTML=opts;});
+}
+
+/* ═══════════════ CONTRACT TEMPLATE (with requisites) ═══════════════ */
+async function runContractTemplate(){
+  const kind=document.getElementById('ctpl-kind').value.trim();
+  if(!kind){toast('Укажите вид договора');return;}
+  const coId=document.getElementById('ctpl-company').value, co=state.companies.find(c=>c.id==coId);
+  const role=document.getElementById('ctpl-role').value, extra=document.getElementById('ctpl-extra').value.trim();
+  const p=outPanel('ctpl-out','Договор: '+kind);
+  const sys=BASE+`\nЗадача: подготовить готовый к подписанию договор по праву РК с подставленными реквизитами.`;
+  let u=`Составь полный текст договора вида «${kind}» по законодательству РК. Наша сторона выступает как: ${role}.`;
+  if(co)u+=`\n\nРеквизиты нашей стороны для преамбулы и раздела «Реквизиты и подписи сторон»:\n${coBlock(co)}\nВторую сторону (контрагента) оставь шаблонными полями «____».`;
+  else u+=`\n\nОбе стороны — шаблонными полями «____».`;
+  if(extra)u+=`\n\nДополнительные условия: ${extra}`;
+  u+=`\n\nВключи все существенные условия для этого вида договора по ГК РК: предмет, права и обязанности, цена и порядок расчётов, сроки, ответственность, форс-мажор, конфиденциальность, разрешение споров, срок действия, реквизиты и подписи. Выдай готовый текст.`;
+  const full=await callAI(sys,u,p,8000);
+  if(full)pushHist('Шаблон договора','Договор: '+kind,full);
+}
+
+/* ═══════════════ SETTINGS ═══════════════ */
+function saveSettings(){
+  const k=document.getElementById('set-key').value.trim();
+  if(k)state.key=k;
+  state.model=document.getElementById('set-model').value;
+  save('key',state.key);save('model',state.model);setKeyDot();toast('Настройки сохранены');
+}
+async function testKey(){
+  const st=document.getElementById('set-status');
+  const k=document.getElementById('set-key').value.trim()||state.key;
+  if(!k){st.textContent='Введите ключ.';return;}
+  st.textContent='Проверяю…';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:document.getElementById('set-model').value,max_tokens:8,messages:[{role:'user',content:'ping'}]})});
+    if(r.ok){st.innerHTML='<span style="color:var(--ok)">✓ Ключ работает.</span>';state.key=k;save('key',k);setKeyDot();}
+    else{const j=await r.json().catch(()=>({}));st.innerHTML='<span style="color:var(--risk)">✗ '+(j.error?.message||('HTTP '+r.status))+'</span>';}
+  }catch(e){st.innerHTML='<span style="color:var(--risk)">✗ '+e.message+'</span>';}
+}
+
+/* ═══════════════ DATA EXPORT/IMPORT ═══════════════ */
+function exportData(){
+  const data={_app:'lawai',_v:1,_exported:new Date().toISOString(),companies:state.companies,watch:state.watch,hist:state.hist,model:state.model};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const d=new Date().toISOString().slice(0,10);
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='lawai-data-'+d+'.json';a.click();
+  toast('Данные выгружены — перенесите файл на другое устройство и импортируйте');
+}
+function importData(inp){
+  const f=inp.files[0];if(!f)return;
+  f.text().then(t=>{try{const d=JSON.parse(t);
+    if(d.companies)state.companies=d.companies;if(d.watch)state.watch=d.watch;if(d.hist)state.hist=d.hist;if(d.model)state.model=d.model;
+    save('companies',state.companies);save('watch',state.watch);save('hist',state.hist);save('model',state.model);
+    initUI();toast('Данные импортированы');}catch{toast('Не удалось прочитать файл');}});
+}
+
+/* ═══════════════ INIT ═══════════════ */
+function initUI(){
+  document.getElementById('set-key').value=state.key;
+  document.getElementById('set-model').value=state.model;
+  setKeyDot(); renderCompanies(); fillCompanySelects(); renderWatch(); renderHistory();
+}
+setupDrop('an-drop',()=>{},true);
+setupDrop('tpl-drop',()=>{},true);
+setupDrop('cmpA-drop',()=>{},false);
+setupDrop('cmpB-drop',()=>{},false);
+marked.setOptions({breaks:true});
+initUI();
+</script>
+</body>
+</html>
